@@ -11,8 +11,8 @@ function main()
     close all; 
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %% run / load polyeigdef 
-    matfilebase = 'polyeig20150505'; 
-    %polyeigdef(matfilebase, 2, 6);  %% matfilebase, p, n 
+    matfilebase = 'polyeig20150505_1'; 
+    polyeigdef(matfilebase, 1, 6);  %% matfilebase, p, n 
     %%% load the mfile containing A0,A1,A2,...Ap,Alist, p,n
     load(strcat(matfilebase,'.mat'));
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
