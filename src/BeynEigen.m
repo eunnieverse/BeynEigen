@@ -1,10 +1,9 @@
-% function main()
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%% BeynEigen
 %%%%% Yoonkyung Eunnie Lee 
 %%%%% matlab program to find the eigenvalue of a nonlinear eigenproblem
 %%%%% using Newton Method and Beyn's contour integral method together
-%%%%% 2015.05.05
+%%%%% 2015.05.12
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% main for Beyn Method 
 function main()
@@ -27,7 +26,6 @@ function main()
     N = 200;  %% N = 50 or 100 gave only the first eigenvalue.  
     BeynA0 = circcontour(f_BeynA0,g0,rho,N);
     BeynA1 = circcontour(f_BeynA1,g0,rho,N);
-    
     
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %%% next , compute the SVD of BeynA0 . 

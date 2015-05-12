@@ -1,11 +1,4 @@
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%% BeynEigen
-%%%%% Yoonkyung Eunnie Lee 
-%%%%% matlab program to find the eigenvalue of a nonlinear eigenproblem
-%%%%% using Newton Method and Beyn's contour integral method together
-%%%%% 2015.05.05
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%% main for Beyn Method 
+%%% main for Beyn Method Tester
     clear all; 
     close all; 
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
