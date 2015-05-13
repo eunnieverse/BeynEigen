@@ -29,16 +29,27 @@ This project aims to implement and test a nonlinear eigenproblem by using two di
 
 \begin{multicols}{2}
 Follow JSIAM Letters publication form. 
-
-\section{Introduction}
 reference Yokota et al. 
 
-\section{Basics of nonlinear eigenvalue problems}
-The eigenvalue problem of interest is to find the resonance frequencies of metallic particles. This is a nonlinear eigenproblem because optical resonance of metallic objects is governed by the collective motion of the electrons, which has a nonlinear dependence on the angular frequency $\omega$. The nonlinear eigenproblem is written as:
+\section{Introduction}
+We implement and analyse a hybrid method to solve nonlinear eigenvalue problems, (NEPs) using Beyn's contour integration method \citep{beyn_integral_2012} together with Newton's root-finding method. 
+
+\subsection*{Basics of nonlinear eigenvalue problems}
+A general nonlinear eigenproblem is written as:
 \begin{equation}\label{eq:Eig}
-    A(\omega) \mathbf{v} = 0,
+    A(\omega_i) \mathbf{v}_i = 0,
 \end{equation}
-where $A(\omega)$ is a matrix-valued function and $(\omega, \mathbf{v})$ is the eigenpair of the nonlinear eigenvalue $\omega$ and its corresponding eigenvector $\mathbf{v}$. 
+where $A(\omega)$ is a matrix-valued function, and $(\omega_i, \mathbf{v}_i)$ is the $i$-th eigenpair of the nonlinear eigenvalue $\omega$ and its corresponding eigenvector $\mathbf{v}$. 
+
+\section{Background}
+General solution method for eigenproblems
+
+\subsection{Spectral decomposition of $A^{-1}(z)$}
+Finding an eigenvalue is equivalent to finding singular points of the matrix problem $A(\omega)$. This is equivalent to searching for the poles of the inverse, $A(\omega)^{-1}$. The poles of the inverse problem are equivalent to the eigenvalues of the original problem.
+\begin{equation}\label{Keldish}
+A^{-1}(z) = \sum\limits_{i=1}^{k}\frac{P_i}{z-\omega_i}+R(z)
+\end{equation}
+where $P_i$ are spectral projection with respect to $\omega_i$, $k$ is the number of eigenvalues inside the given contour $\Gamma$ 
 \subsection*{Test Case 1. Polynomial Eigenproblem}
 For simplicity, we first construct a polynomial eigenproblem in the following form:
 \begin{equation}\label{eq:polyeig}
@@ -46,6 +57,7 @@ A(\omega)=\sum\limits_{i=0}^{p}\omega^iA_i.
 \end{equation}
 All numerical implementations are tested using this test case. 
 \subsection*{Test Case 2. Optical Eigenproblem from Boundary Element Method}
+The eigenvalue problem of scientific interest is to find the resonance frequencies of metallic particles. This is a nonlinear eigenproblem because optical resonance of metallic objects is governed by the collective motion of the electrons, which has a nonlinear dependence on the angular frequency $\omega$. 
 In this case, $A(\omega)$ is constructed by discretizing the integral form of the Maxwell's equations using the Boundary Element Method (BEM). The BEM matrix $A\mathbf{v}=\mathbf{f}$ relates the incident field vector $\mathbf{f}$ with the induced surface current vector $\mathbf{v}$, expressed using piecewise basis vectors. 
 
 The Eigenvalues are computed by searching for the root of the following function:
