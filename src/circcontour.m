@@ -13,5 +13,5 @@ function sum = circcontour(fun, g0, rho, N)
     for ii=1:N
         sum = sum + fun(gamma(ii)); 
     end
-    sum = sum;
+    sum = sum/(N*i);
 end %end circcontour
