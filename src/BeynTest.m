@@ -3,25 +3,32 @@
 %%%%% Yoonkyung Eunnie Lee 
 %%%%% matlab program to find the eigenvalue of a nonlinear eigenproblem
 %%%%% using Newton Method and Beyn's contour integral method together
-%%%%% 2015.05.12
+%%%%% 2015.05.14
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% Tester for BeynEigen
+
+%%% Strategy 
+
+%%% input into Beyn function: funA(z), contour center, radius, N
+%%%                         dimension of the random matrix M: l
+%%%                         tol: tolerance to drop near-zero eigenvalue
+%%% function [v,omega]=Beyn(funA(z),l,g0,rho,N,tol)
 clear all; 
 close all; 
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %%% Step 0: Run or Load data for A(z) 
-    matfilebase = 'polyeig20150505_1'; 
+    matfilebase='polyeig20150514';
     % polyeigdef(matfilebase, 2, 6);  %% matfilebase, pp, mm 
     load(strcat(matfilebase,'.mat'));
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %%% Step 2: Compute BeynA0, BeynA1 from circcontour 
-    l = n-1;  %%% currently this is arbitrary 
+    l = n-3;  %%% currently this is arbitrary 
     M = rand(n,l);  %%% dimension of an arbitrary scaling matrix = n x l 
     f_BeynA0 = @(z) inv(funA(z))*M; 
     f_BeynA1 = @(z) z*f_BeynA0(z); 
-    rho = 3; 
-    g0 = 0;
-    N = 200;  %% N = 50 or 100 gave only the first eigenvalue.  
+    rho = 1; 
+    g0 = 0; 
+    N = 300;   %% N = 50 or 100 gave only the first eigenvalue.  
     %%% compute the contour integral using a circle around g0, with r=rho 
     BeynA0 = circcontour(f_BeynA0,g0,rho,N);
     BeynA1 = circcontour(f_BeynA1,g0,rho,N);   
@@ -35,10 +42,10 @@ close all;
     %%% V0 : size m x l , Sigma0: l x l, W0: l x l 
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %%% Step 4: perform a rank test for Sigma and cut meaningless zeros
-    tol_rank = 0; 
+    tol = 0; 
     k=0; %%% tolerance size for meaningful eigenvalues 
     for ii=1:length(Sigma); 
-        if (Sigma(ii,ii)>tol_rank) 
+        if (Sigma(ii,ii)>tol) 
             k=k+1;
         end
     end
