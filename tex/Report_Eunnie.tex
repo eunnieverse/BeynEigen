@@ -31,17 +31,18 @@ Follow JSIAM Letters publication form.
 reference Yokota et al. 
 
 \section{Introduction}
-We implement and analyse a hybrid method to solve nonlinear eigenvalue problems, (NEPs) using Beyn's contour integration method \citep{beyn_integral_2012} together with Newton's root-finding method. 
+We propose a solution method for nonlinear eigenvalue problems, (NEPs) hybridizing Beyn's contour integral method\citep{beyn_integral_2012} with Newton's root-finding method. Contour integral method does not require an initial guess, but is computationally expensive because a matrix inverse needs to be computed at every point on the contour quadrature. On the other hand, Newton's method is computationally less expensive but depends on the quality of the initial guess provided. our approach is to use these two methods together. The result from Beyn's method is used as the initial guess for Newton's method. 
 
-\subsection*{Basics of nonlinear eigenvalue problems}
-A general nonlinear eigenproblem is written as:
+A general NEP involves finding eigenpairs $(\omega,\mathbf{v})$ that satisfy
 \begin{equation}\label{eq:Eig}
-    A(\omega_i) \mathbf{v}_i = 0,
+    A(\omega) \mathbf{v} = 0,
 \end{equation}
-where $A(\omega)$ is a matrix-valued function, and $(\omega_i, \mathbf{v}_i)$ is the $i$-th eigenpair of the nonlinear eigenvalue $\omega$ and its corresponding eigenvector $\mathbf{v}$. 
+where $A(\omega)$ is a matrix-valued function that is analytic, $\omega$ is the nonlinear eigenvalue, and $\mathbf{v}$ is the corresponding eigenvector.
 
 \section{Background}
+
 General solution method for eigenproblems
+
 
 \subsection{Spectral decomposition of $A^{-1}(z)$}
 Finding an eigenvalue is equivalent to finding singular points of the matrix problem $A(\omega)$. This is equivalent to searching for the poles of the inverse, $A(\omega)^{-1}$. The poles of the inverse problem are equivalent to the eigenvalues of the original problem.
@@ -85,8 +86,11 @@ A^{-1}(\omega)=\sum\limits_{j=-\kappa}^{\infty} S_j (\omega-\lambda)^j,\;\;
 for some neighborhood $\mathcal{U}$ of $\lambda$. The theorem of Keldysh\citep{keldysh1951characteristic} is used to represent the singular part of eq. \ref{eq:Ainv} in terms of eigenvectors of $A$ and $\mathrm{Adj}(A)$. This method resembles the search of poles in the complex plane using contour integrals. 
 
 The contour integrals in eq. \ref{eq:cont} are calculated approximately by trapezoidal sum, and therefore the main numerical effort for $N$ quadrature points arise from solving $N$ LU-decompositions and $Nk$ linear systems. While this operation count for a fine-meshed contour integral is a disadvantage, a big advantage is that no initial approximation is needed for the eigenvalues and eigenvectors. Therefore it is expected that an optimal performance will be achieved if Beyn's method is combined with Newton's method. 
+
+
 \section{Numerical Example}
 * Language: The algorithms will be implemented in C/C++.\\
+In reality in MATLAB. 
 * Discretization of the PDE: The open-source numerical implementation SCUFF-EM.\citep{SCUFF1}\\
 * Validation: 
 - The numerical integration used in the Beyn's contour integral method will be validated using the evaluation of a known function. \\
