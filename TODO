@@ -1,0 +1,34 @@
+TODO FILE CREATED ON 2015.06.12
+
+--Notes--
+1. Beyn -> Newton was clear, but Newton -> Beyn was not. Today it became clear. 
+   Newton->Beyn works to reduce the number of poles for the integrals.
+2. What x axis is meaningful when you plot the error? What shows the system stability? 
+   ex. distance bewteen contour and a particular eigenvalue of choice. change this distance and plot the error. 
+
+--------------------------------------------------------------------------------------------
+The User supplies the following. 
+     a matrix-valued function A[w]
+     int k_guess : initial guess for the number of eigenvalues
+     const cdouble phi(t): contour parametrization
+
+Function Beyn has 4 inputs:  int k_guess, matrix A[w], const cdouble phi(t), 
+                             int N, cdouble w_NewtonConverged[l], double delta_w_BeynCutoff
+                  4 outputs: int k, cdouble w[k], double delta_w[k], int N, w_BeynConverged[l]
+
+Function Newton has 3 inputs: int l, cdouble w_BeynConverged[l], matrix A[w], 
+                    outputs: cdouble w_NewtonConverged[l] 
+                             w0[k0] denote the k0 eigenvalues that have converged to e_mach
+--------------------------------------------------------------------------------------------
+
+--TODO-- 
+Start with N=4. increase N by a factor of 2. (for Nested quadrature scheme) 
+
+Single Beyn Run 
+1. compute N-pt integration w_N[k_guess] 
+     and integrate the size function to obtain k_safe 
+     (update k_guess and add safety value 2 or 10%, ex. k_safe = k_guess+2 )
+2. compute delta_w[k] by |w_N[k]-w_N2[k]|, where N2=N/2; 
+
+Decide next run: Beyn or Newton? Run Newton for w_BeynConverged[l] and obtain w_NewtonConverged[l]. 
+Abort Newton if convergence is slow 
