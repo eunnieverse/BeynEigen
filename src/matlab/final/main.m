@@ -20,7 +20,7 @@ filebase = 'poly2_100';
 %---------------------------------------------------------------------
 %%% necessary improvements : elliptical contour, 
 %%% 
-%%% parameters 
+%%% parameters
 g0 = 0;     %%% center of contour , complex 
 rho =0.51;  %%% radius of contour , real 
 tolr=1e-4;  %%% rank tolerance to drop near-zero eigenvalues
