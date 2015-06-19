@@ -1,0 +1,57 @@
+We show that the two methods 
+
+
+function [dX,dS] = nlevp_newtonstep( A, f, X, S, W, RT, RV )
+% Computes the solution (dX,DS) to the linearized system in one step of
+% the block Newton method for a nonlinear eigenvalue problem (NLEVP).
+%
+% Input: A - 3d-array containing the matrices A_j of the NLEVP
+%
+f - handle to a function f(j,M) that returns f_j(M)
+%
+for any square matrix M
+%
+(X,S) - current iterate. S is assumed upper triangular.
+%
+W - 3d-array containing the normalization matrices W_j
+% (RT,RV) - right-hand side
+%
+% Output: Solution (dX,dS) to the linearized equation in one step
+%
+of the block Newton method for the NLEVP.
+n = size(A,1); m = size(A,3); k = size(X,2); l = size(W,3);
+dX = zeros(n,k); dS = zeros(k,k);
+% Precompute all required powers and functions of S.
+fS = zeros(k,k,m); pS = zeros(k,k,l-1); pS(:,:,1) = S;
+for j = 1:m, fS(:,:,j) = feval(f,j,S); end
+for j = 2:l-1, pS(:,:,j) = pS(:,:,j-1)*S; end
+% Main loop for computing the ith columns of dX and dS
+for i = 1:k,
+% Set up and solve linear system
+s = S(i,i);
+T11 = zeros(n); for j = 1:m, T11 = T11 + A(:,:,j)*feval(f,j,s);
+end
+T12 = zeros(n,k);
+for j = 1:m,
+DF = feval(f,j,[S, eye(k);zeros(k) s*eye(k) ]);
+T12 = T12 + A(:,:,j)*X*DF(1:k,k+1:2*k);
+end
+T21 = W(:,:,1)’; for j = 2:l, T21 = T21 + sˆ(j-1) * W(:,:,j)’; end
+DS = eye(k); T22 = zeros(k);
+for j = 2:l, T22 = T22 + W(:,:,j)’*X*DS; DS = s*DS + pS(:,:,j-1);
+end
+sol = [T11 T12; T21 T22] \ [RT(:,i);RV(:,i)];
+dX(:,i) = sol(1:n); dS(:,i) = sol(n+1:end);
+% Update right-hand side
+Z = zeros(k); Z(:,i) = dS(:,i); DS = Z;
+for j = 1:m,
+DF = feval(f,j,[S, Z;zeros(k) S ]);
+RT(:,i+1:k) = RT(:,i+1:k) - A(:,:,j) * ( dX(:,i)*fS(i,i+1:k,j)
++ X*DF(1:k,k+i+1:2*k) );
+end
+for j = 2:l,
+RV(:,i+1:k) = RV(:,i+1:k) - W(:,:,j)’ * ( dX(:,i)*pS(i,i+1:
+k,j-1) + X*DS(:,i+1:k) );
+DS = DS*S + pS(:,:,j-1)*DS;
+end
+end
