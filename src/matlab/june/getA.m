@@ -20,4 +20,4 @@ function [] = BeynSVD(BeynA0,BeynA1)
     s = diag(Sigma); 
     k = sum(s>1e-15); %%actual rank 
     
-    V0 = V(1:n, 1:k);
+    V0 = V(1:n, 1:k); 

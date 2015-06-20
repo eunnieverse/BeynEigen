@@ -1,0 +1,375 @@
+\documentclass[final,leqno,onefignum,onetabnum]{siamltex1213}
+\usepackage[sort&compress,numbers]{natbib}
+\usepackage{fontenc,multicol,amsmath,amssymb,comment,graphicx}
+\usepackage{algorithm, algorithmic}
+\title{Method for Nonlinear Eigenproblems: Hybridizing Contour Integral and Newton's Method} 
+
+\author{Yoonkyung Eunnie Lee \footnotemark[2]}
+\renewcommand{\thefootnote}{\fnsymbol{footnote}}
+\footnotetext[2]{Department of Mechanical Engineering, Massachusetts Institute of Technology, Cambridge, MA 02139, USA}
+\renewcommand{\thefootnote}{\arabic{footnote}}
+%----------commands----------------------------------%
+\newcommand{\diff}{\mathrm{d}}
+%------------------------------------------------------%
+\pagestyle{myheadings}
+\thispagestyle{plain}
+\markboth{Yoonkyung Eunnie Lee}{18.335 Final Project, Beyn-Newton method for NEPs}
+%--------------------------------------------------------------
+\begin{document}
+%--------------------------------------------------------------
+\maketitle
+\begin{flushright}
+2015.05.17\\
+Final Report for 18.335 \\
+\end{flushright}
+
+\begin{abstract}
+We propose a solution method for nonlinear eigenproblems (NEPs) by hybridizing two known solution methods for NEPs. The first method is traditional Newton iteration, which has excellent quadratic convergence provided that a good initial guess exists. The second method is a different approach using a complex contour integral. This method, referred to as Beyn's method in this work, computes the inverse of the original function and searches for all poles inside a given contour. For analytic functions, this is equivalent to searching for singular points of the original problem. The benefit of Beyn's method is that no initial guess is required, but computing a the matrix inverse for every point on the quadrature is numerically expensive. Our hybrid method combines the strengths of the two methods, which is demonstrated through a short example in this report. We further aim to generalize the solution method towards eigenvalue problems in science and engineering. 
+
+\end{abstract}
+\begin{keywords} Nonlinear Eigenvalue Problems, (NEPs) Contour Integral (CI) Method, Newton Method, Nonlinear Inverse Iteration \end{keywords}
+%--------------------------------------------------------------
+\section{Introduction} 
+%--------------------------------------------------------------
+
+A nonlinear eigenproblem (NEP) is a generalization of an ordinary eigenproblem to equations that depend nonlinearly on the eigenvalue. We will use this definition and focus on eigenproblems where nonlinearties arise only from the eigenvalue, and not from the eigenvector. 
+
+\subsection{Motivation}
+NEPs arise in diverse applications in science and technology, or any other field where a matrix or tensor represents the behavior of a system. \citep{guillaume_nonlinear_1999, betcke2013nlevp}. For physical systems characterized with an eigenfrequency $\omega$, solving an eigenproblem is equivalent to finding the condition at which the system is singular and therefore can produce a divergent output in response to a finite input. This is closely related to the concept of resonance. Nonlinearity is extremely common when solving for the eigenfrequencies, because a system that contains energy dissipation, gain, memory, or feedback is nonlinear in $\omega$. The nonlinearity can also arise from the boundary conditions or from the use of special basis functions, even when the original system is linear. Solutions for NEPs is a very active research field, filled with real-world applications and pressing needs from the scientific community. 
+
+\subsection{General Framework}
+Given an analytic, matrix-valued function $A(\omega)$ defined on some some subdomain $\mathcal{D}$ of the complex plane, we consider the solution of:
+\begin{equation}\label{eq:Eig}
+    A(\omega) \mathbf{v} = 0,\;\;\;\;\;\mathbf{v}\neq 0
+\end{equation}
+where $\omega \in \mathcal{D}$ is the nonlinear eigenvalue, and $\mathbf{v} \in \mathbb{C}^n\backslash\{0\}$ is the corresponding eigenvector. Any pair $(\omega, \mathbf{v})$ satisfying \ref{eq:Eig} is called an eigenpair of $A$, and the set of all eigenvalues is commonly known as the spectrum of $A$. For regular NEPs with non-empty set of $\omega$, The mapping $\omega \mapsto A(\omega)^{-1}$ is called the resolvent of $A$ and is well defined for all $\omega$ in the resolvent set. 
+
+An eigenvalue problem is essentially a root-finding problem because the goal is to search for all of the singular points of an operator. The characteristic equation for an NEP can be written as:
+\begin{equation}\label{eq:charNEP}
+\det A(\omega) = 0. 
+\end{equation}
+
+\subsection{Solution Method for Linear Eigenproblems }
+\pagebreak
+A linear eigenvalue problem is a special case of an NEP with the choice of 
+\begin{equation} 
+\label{eq:LEP}
+A(\omega )= \omega I - B,
+\end{equation}
+
+in \ref{eq:Eig}, where $B \in\ \mathbb{C}^{n \times n}$ is a constant matrix. It is well known that $B$ has at most $n$ distinct eigenvalues that are the roots of the characteristic polynomial
+
+\begin{equation}
+	\label{eq:charEP}
+	p_{B}(\omega)=\det(\omega I -B)
+\end{equation}  
+
+associated with $B$. 
+
+The solution method for linear eigenvalue problems is a mature topic in numerical analysis, and computational libraries are available with implementations of different solution methods including Arnoldi$/$Lanczos with explicit restart, Jacobi-davidson, Rayleigh-quotient conjugate gradient, Krylov-Schur.  \citep{hernandez2005slepc} 
+
+For linear eigenvalue problems, the eigenvectors can be chosen to be linearly independent from each other. This is essential for a reliable computation because the per-determined eigenvectors can be deflated from the problem by restricting the computation to their orthogonal complement. 
+
+\subsection{Concerns for Nonlinear Eigenproblems}
+
+On the other hand, the eigenvectors of NEPs can be linearly dependent on each other. This is problematic when solving for multiple eigenpairs together, because the problem cannot be deflated by removing the known eigenvectors due to the risk of missing eigenvalues.
+
+We also note the difference between \ref{eq:charNEP} and \ref{eq:charEP}. In \ref{eq:charNEP}, $\det A$ is not necessarily a polynomial and therefore the number of eigenvalues are not limited by the size of $A$. For example, the function
+\begin{equation*}
+A(\omega) = \sin(\omega)
+\end{equation*} 
+has an infinite number of eigenvalues. Such complications make NEPs harder to solve compared to general eigenproblems. 
+
+\subsection{Overview}
+In this report, we review existing solution methods for NEPs and suggest to combine CI-based Beyn's method and Newton's iteration to achieve faster convergence to all eigenvalues inside a given contour. We discuss the basic aspects of available solution methods for NEPs in section 2, and review the algorithms for the two methods of interest. In section 3 we suggest and demonstrate the hybrid method. In section 4 we perform error analysis of an example test case using MATLAB's {\tt polyeig} function. Lastly we summarize our results and conclude with a discussion on what future steps to take in order to make this approach useful for research. 
+
+%--------------------------------------------------------------
+\section{Solutions of NEPs by Newton's Method }
+%--------------------------------------------------------------
+We begin by summarizing the existing numerical algorithms for solving NEPs. Since solving an NEP is equivalent to finding all roots of the characteristic equation \ref{eq:charNEP}, it is natural to begin by algorithms based on Newton's root-finding method. 
+%--------------------------------------------------------------
+%--------------------------------------------------------------
+Newton's method finds the root of $f(\omega)=0$ by the following iteration:
+\begin{equation}
+	\label{eq:NewtIterate}
+	\omega \rightarrow \omega - \frac{f(\omega)}{f'(\omega)}.
+\end{equation}
+
+We use \ref{eq:NewtIterate} to iterate for the eigenvalue search performed in this report. Below we introduce algorithms that are useful when information about the eigenvector is also wanted.
+\subsection{Algorithms}
+For an analytic matrix-valued function $A(\omega)$, we can write:
+\begin{equation*}
+\frac{f(\omega)}{f'(\omega)} = \frac{\mathrm{det}(A(\omega))}{ \mathrm{tr} \left( \mathrm{adj}(A(\omega))\dot{A}(\omega)\right)} = \frac{1}{ \mathrm{tr}\left( A^{-1}(\omega)\dot{A}(\omega)\right)},
+\end{equation*}
+where $\diff A(\omega)/\diff \omega$ is simply written as $\dot{A}(\omega)$. This basic method is referred to as {\it nonlinear inverse iteration}, \citep{anselone_solution_1968} and the algorithm is stated below. 
+\subsubsection{Nonlinear Inverse Iteration}
+\begin{algorithm}
+\caption{Newton's method: {\it nonlinear inverse iteration}}
+\label{alg:Newton}
+\begin{algorithmic}
+\STATE Let $e$ be a normalization vector. Start with an initial guess ($\omega_0, \mathbf{v}_0$) such that $e^{H}\mathbf{v}_0=1$ 
+\FOR{j=1, 2, \ldots until convergence }
+\STATE $\mathbf{x}_{j+1} = A(\omega_j)^{-1} \dot{A}(\omega_j)\mathbf{v}_j$
+\STATE $\omega_{j+1} = \omega_j - e^H\mathbf{v}_j/e^H\mathbf{x}_{j+1} $
+\STATE normalize $\mathbf{v}_{j+1}=\mathbf{x}_{j+1}/e^{H}\mathbf{x}_{j+1}$
+\ENDFOR
+\end{algorithmic}
+\end{algorithm}
+Algorithm \ref{alg:Newton} is implemented in {\tt NewtInv.m}. 
+\subsubsection{Residual Inverse Iteration}
+In another variant of Newton's method, the gradient information $\dot{A}(\omega)$ is not required by storing $A(\omega_{j+1})$ and updating the residual instead. This is called  {\it residual inverse iteration}. \citep{neumaier1985residual}
+
+\begin{algorithm}
+\caption{Newton's method: {\it residual inverse iteration}}
+\label{alg:Newton_resinverse}
+\begin{algorithmic}
+\STATE Let $e$ be a normalization vector. Start with an initial guess ($\omega_0, \mathbf{v}_0$) such that $e^{H}\mathbf{v}_0=1$ 
+\FOR{j=1, 2, \ldots until convergence }
+\STATE solve $e^H A(\omega_j)^{-1} A(\omega_{j+1})\mathbf{v}_j =0 $ for $\omega_{j+1}$ 
+\STATE $\mathbf{v}_{j+1} = \mathbf{v}_j- A(\omega_j)^{-1} A(\omega_{j+1})\mathbf{v}_j $
+%\STATE $\omega_{j+1} = \omega_j -1/e^H \mathbf{v}_{j+1} $
+\ENDFOR
+\end{algorithmic}
+\end{algorithm}
+$A(\omega_j)^{-1}$ in the above algorithm can be further substituted with $A(\omega_0)^{-1}$  without destroying the convergence. Refer to \citep{neumaier1985residual} for a detailed discussion. The residual inverse iteration is not yet implemented in this report. 
+
+\subsection{Quadratic Convergence}
+Algorithms \ref{alg:Newton} and \ref{alg:Newton_resinverse} both 
+have asymptotically quadratic convergence towards simple eigenvalues, meaning that the sequence converges with order $q=2$ to $L$ where 
+\begin{equation}\label{eq:quadconv}
+    \lim_{k \to \infty} \frac{|x_{k+1}-L|}{|x_k-L|^{2}} = \mu 
+\end{equation}
+where there exists a number $\mu>0$.
+
+\subsection{Operation Count}
+Each step of nonlinear inverse iteration of algorithm \ref{alg:Newton} requires a solution of a linear system for $A(\omega)^{-1}$, which asymptotically requires $\mathcal{O}\{m^3\}$ flops. 
+
+\subsection{Other Methods}
+Solution methods for NEPs is an active research field, and contributions to the topic is not necessarily limited to Newton-based or CI-based methods. A good review can be found in \citep{effenberger_robust_2013}. 
+\subsubsection{Subspace Iteration with Newton-based Methods}
+A crucial point in iterative projection methods for general NEPs is to  prohibit repeated convergence to  the same eigenvalue. For this purpose, it can be advantageous to retain the previous approximations when memory is not the biggest concern. A Rayleigh-Ritz procedure for NEPs includes the nonlinear Arnoldi and \citep{voss2004arnoldi} and nonlinear Jacobi-davidson \citep{mehrmann2004nonlinear, voss2007jacobi} method. 
+\subsubsection{Block Algorithms for NEPs}
+Another interesting approach is to create block versions of aforementioned algorithms, which prevents re-convergence to the same eigenvalue by computing all eigenvalues in a cluster simultaneously, which is similar to subspace iteration for linear eigenvalue problems. Kressner proposed a block Newton method for nonlinear inverse iteration in 2009 \citep{kressner2009block}. 
+%--------------------------------------------------------------
+\section{Solutions of NEPs by Contour Integral Methods}
+%--------------------------------------------------------------
+On the other hand, a new class of solution methods for NEPs based on CIs have been developed in the 2000's. It is based on the observation that if we assume all eigenvalues to be distinct, the zeros of an analytic matrix function $A(\omega)$ are equal to the poles of the resolvent $A^{-1}(\omega)$. 
+%--------------------------------------------------------------
+\subsection{Brief History}
+%--------------------------------------------------------------
+CI-based method for generalized EPs was suggested by Sakurai and Sugiura in 2003, \citep{sakurai2003projection} and was extended for nonlinear eigenproblems using block Hankel matrices by Asakura {\it et al.} in 2009. \citep{asakura_numerical_2009} The eigenspace is first constructed using the contour integral, and a subspace iteration is used to solve the GEP. (Hankel: \citep{asakura_numerical_2009}, Rayleigh-Ritz: \citep{yokota_projection_2013}) 
+
+In this report we follow the formulation of Beyn\citep{beyn_integral_2012}, which shares the same fundamental characteristics with \citep{asakura_numerical_2009, sakurai_efficient_2013}. 
+%--------------------------------------------------------------
+\subsection{Theoretical Framework}
+%--------------------------------------------------------------
+The resolvent $A(\omega)^{-1}$ is a finitely meromorphic function, meaning that there exist $\kappa\in\mathbb{N}$ and $S_j\in \mathbb{C}^{n,n}$ for $j\geq -\kappa$ such that $S_{-\kappa}\neq 0$, and 
+\begin{equation}\label{eq:Ainv}
+A^{-1}(\omega)=\sum\limits_{j=-\kappa}^{\infty} S_j (\omega-\omega_0)^j,\;\;
+\;\; \omega \in \mathcal{U} \setminus \lbrace\omega_0 \rbrace 
+\end{equation}
+for some neighborhood $\mathcal{U}$ of $\omega_0$. Let us consider a Laurent series expansion of $A(\omega)^{-1}$. According to Keldysh theorem, \citep{keldysh1951characteristic, beyn_integral_2012} the principal part of this Laurent series can be expressed in terms of the (generalized) left and right eigenvectors associated with $\omega$:
+\begin{equation}
+\label{eq:Keldysh}
+A(\omega)^{-1} = \sum\limits_{k}\frac{1}{\omega-\omega_k}\mathbf{v}_k\mathbf{w}_k^H + R(\omega).
+\end{equation}
+Here $k$ is the number of eigenvalues inside the contour $\Gamma$, $\omega_k$ are the complex eigenvalues, $\mathbf{v}_k, \mathbf{w}_k$ are the corresponding left and right eigenvectors, and $R(\omega)$ is the residual that is holomorphic. Using the residue theorem, we can write: 
+\begin{equation}\label{eq:cont}
+A_{p} = \frac{1}{2\pi i}\int_{\Gamma}\omega^p A^{-1}(\omega)\hat{M} \diff\omega \;\in\mathbb{C}^{n \times l},
+\end{equation}
+where $\hat{M} \in \mathbb{C}^{n,l}$ is chosen as a random matrix that preserves the rank $k$ with $k \leq l \leq n$. We have reduced the NEP to a k-dimensional linear EP. The choice of $p=0,1$ is sufficient when $k<n$, that is, if the number of eigenvalues inside the contour is less than the problem dimension. If not, a more general formalism using $p > 1$ should be used. \citep{beyn_integral_2012}
+
+%--------------------------------------------------------------
+\subsection{Quadrature Evaluation}
+%--------------------------------------------------------------
+The contour integrals in eq. \ref{eq:cont} are calculated approximately the by trapezoidal sum of a smooth analytical contour. This leads to an exponential decline of the quadrature error with the number of quadrature nodes.
+
+We implement the contour integral using a circular parametrization $\varphi(t) = g_0 + \exp(i t)$, discretized using $t_k = 2\pi k/N$, where $k=0,1,\ldots,(N-1)$. 
+
+\begin{equation}\label{eq:A0int}
+A_{0,N} = \frac{1}{2\pi i}\int\limits_{0}^{2\pi} A^{-1}(\varphi(t))\hat{M} \varphi^{\prime}(t)\diff t 
+\approx \frac{1}{iN}\sum\limits_{k=0}^{N-1}A(\varphi(t_k))^{-1}\hat{M}\varphi^{\prime}(t_k)
+\end{equation}
+\begin{equation}\label{eq:A1int}
+A_{1,N} = \frac{1}{2\pi i}\int\limits_{0}^{2\pi} A^{-1}(\varphi(t))\hat{M} \varphi(t) \varphi^{\prime}(t)\diff t
+\approx \frac{1}{iN}\sum\limits_{k=0}^{N-1}A(\varphi(t_k))^{-1}\hat{M} \varphi(t_k) \varphi^{\prime}(t_k)
+\end{equation}
+
+%--------------------------------------------------------------
+\subsection{Algorithm for SVD and Eigenvalues}
+%--------------------------------------------------------------
+Using the theoretical framework layed out above, the next step is to perform the SVD and solve the linearized eigenproblem. This is summarized in algorithm \ref{alg:Beyn1}. 
+
+\begin{algorithm}
+\caption{Beyn's algorithm for a few eigenvalues}
+\label{alg:Beyn1}
+\begin{algorithmic}
+\REQUIRE Choose an index $l\leq n$ and a random matrix $\hat{M}\in\mathbb{C}^{n\times l}$. 
+\STATE Compute $A_{0,N}$ and $A_{1,N}$ from \ref{eq:A0int}, \ref{eq:A1int}. 
+\STATE Compute the SVD $A_{0,N} = V\Sigma W^{H}$ 
+\\ \hspace{0.5cm} where $V\in\mathbb{C}^{n\times l}$, $W\in\mathbb{C}^{l\times l}$, $V^{H}V=W^{H}W = I_{l}$, $\Sigma = \mathrm{diag}(\sigma_1,\sigma_2,\ldots,\sigma_l)$.
+\STATE Perform a rank test to find $k$ 
+\\ \hspace{0.5cm} by $\sigma_k \geq \mathrm{tol_{rank}}\geq \sigma_{k+1} \approx \ldots \approx \sigma_l \approx 0$. 
+\\ \hspace{0.5cm} If $k = l$ then increase $l$ and go to step 1. 
+\STATE Compute $B = V_0^H A_{1,N} W_0 \Sigma_0^{-1} \in \mathbb{C}^{k,k}$.
+\STATE Solve $B\mathbf{v} =\omega\mathbf{v}$.
+\end{algorithmic}
+\end{algorithm}
+This algorithm is implemented in {\tt Beyn1.m}. 
+
+%--------------------------------------------------------------
+\subsection{Operation Counts and Convergence}
+%--------------------------------------------------------------
+Using a CI-based algorithm guarantees that all distinct eigenvalues inside the contour will be located with a choice of a sufficiently large $N$. From the trapezoidal sum of eq. \ref{eq:cont}, the main numerical effort for $N$ quadrature points arise from solving $N$ LU-decompositions and $Nk$ linear systems:
+\begin{equation}
+\mathcal{O}(N m^3) + \mathcal{O}(N k m^3)\approx \mathcal{O}(Nkm^3) 
+\end{equation}
+and therefore the factor $N$ is a big disadvantage the finer the mesh gets. This convergence will be tested in section 4 in further detail. 
+%--------------------------------------------------------------
+\section{Numerical Implementation and Error Analysis }
+%--------------------------------------------------------------
+
+%--------------------------------------------------------------
+\section{Strategy for Hybridization}
+%--------------------------------------------------------------
+We propose a solution method for NEPs by hybridizing Beyn's CI method and Newton's nonlinear inverse iteration method. First, Beyn's method of algorithm \ref{alg:Beyn1} is used to solve for a list of approximate eigenvalues. The biggest computational cost for Beyn's method is the LU factorization and matrix solution that all scale with the number of quadrature points N. ($\mathcal{O}(Nkm^3)$). Our hybrid method aims to remedy the strict condition for N by further refining the convergence by Newton's method of algorithm \ref{alg:Newton}. Newton's method is computationally less expensive but depends on the quality of the initial guess provided. Therefore an optimum condition would exist, where the quality of the initial guess is good enough for Newton convergence while keeping N as small as possible. We aim to determine this optimum $N$ for a numerical example introduced in the next section. 
+%--------------------------------------------------------------
+\subsection{Numerical Example: A Polynomial Eigenproblem}
+%--------------------------------------------------------------
+\begin{figure}
+\label{fig:E}
+\begin{center}
+\includegraphics[width=6.45cm]{pictures/poly2_100_E.eps}
+\includegraphics[width=6.45cm]{pictures/poly2_100_E_close.eps}
+\end{center}
+\caption{Spectrum of $A(\omega)$. \textnormal{Left: spectrum includign all eigenvalues of $A$. Right: A closer view around the contour $g_0+\rho e^{it}$ with $g_0=0$, $\rho=0.5$, $N=150$.}}
+\end{figure}
+
+Let us consider the polynomial eigenvalue problem 
+\begin{equation}
+\label{eq:polyeig}
+A(\omega)= A_0+A_1 \omega + A_2 \omega^2 + \ldots =\sum\limits_{i=0}^{p}\omega^iA_i ,
+\end{equation}
+which can be easily solved using the MATLAB function {\tt polyeig} for the exact solutions. We implement the Beyn-Newton method in MATLAB, and benchmark the performance using polynomial test cases. Unless otherwise noted, the experimentations presented in this report are obtained from the test case of a quadratic eigenproblem, where the coefficients $A_0, A_1, A_2$ are all generated using MATLAB's {\tt rand(n)} function with $n=100$. The spectrum of this test problem is illustrated in \ref{fig:E}.  
+
+
+
+All calculations were run under MATLAB 8.3 on a Intel Xeon processor with 3.5 GHz and 250GB RAM. 
+%--------------------------------------------------------------
+\subsection{Benchmarking Newton's Method}
+%--------------------------------------------------------------
+The Newton step implementation is analysed in this section. The quadratic convergence of Newton's method with respect to the number of iteration is verified in figure \ref{fig:NewtonBenchmark}.
+%--------------------------------------------------------------
+\begin{figure}\label{fig:NewtonBenchmark}
+\begin{center}
+\includegraphics[width=7cm]{pictures/NewtonConvergence.eps}
+\end{center}
+\caption{Convergence of Newton method with respect to the number of iterations. \textnormal{Plots represent ten different iterations with random starting points. Linear slope of $log(-log(e_r))$ confirms the quadratic convergence of Newton's method.}}
+\end{figure}
+
+\begin{figure}\label{fig:NewtonIterate}
+\begin{center}
+\includegraphics[width=9cm]{pictures/Newton_Iteration.eps}
+\end{center}
+\caption{Trajectory of Newton iteration on the complex plane. \textnormal{The rate of convergence is governed by the quality of the initial guess and the surrounding poles in the vicinity of the updated guess. The transition from stagnant region to quadratic convergence is clearly visible.}} 
+\end{figure}
+%--------------------------------------------------------------
+We plot the double log of the relative error in figure \ref{fig:NewtonBenchmark} for ten samples. The error tolerance is set to $10^{-15}$, which determines the cut-off value for all log-log error plots. The starting points are selected a random point inside the unit circle. The relative error represents the normalized difference between adjacent Newton steps as below.
+\begin{equation}\label{eq:er}
+e_r=\frac{|\omega_{j+1} - \omega_j|}{|\omega_j|}
+\end{equation}
+The linear slope of the double-log plot $\log(-\log(e_r))$ shows that the convergence of Newton method is indeed quadratic with respect to the number of iterations. The plot also shows how the quality of the initial guess influences the convergence. An interesting finding is that only a small number of steps, about 6 steps in this test case, are required after the quadratic convergence begins. Before the start of fast convergence, the update slowly moves around and has no significant contribution to convergence. Figure \ref{fig:NewtonIterate} illustrates this behavior by tracking the Newton step of a single eigenvalue on the complex plane. A good starting point would accelerate the initiation of the quadratic convergence and thereby eliminate the idle steps in the beginning. 
+
+%--------------------------------------------------------------
+\subsection{Benchmarking Beyn's Method}
+%--------------------------------------------------------------
+\subsubsection{Convergence of Trapezoidal Sum}
+Exponential convergence is expected for the trapezoidal sum of holomorphic periodic integrands. We first check this by plotting the error of two largest eigenvalues with different magnitudes. The error is defined as: 
+\begin{equation}
+\label{eq:e}
+e(\omega_k) = \mathrm{min}\left\lbrace  |\omega_k - \hat{\omega}|:\hat{\omega}\in\sigma_{\mathtt{polyeig}}.\right\rbrace ,
+\end{equation}
+where normalization is omitted for the known answers  $\hat{\omega}_1 = -0.371 + 0.247i$ and $\hat{\omega}_2=
+  0.179 + 0.455i$. The result is plotted in figure \ref{fig:Benchmark_Beyn}. 
+%--------------------------------------------------------------
+\begin{figure}\label{fig:Benchmark_Beyn}
+\begin{center}
+\includegraphics[width=6.45cm]{pictures/Benchmark_Beyn.eps}
+\includegraphics[width=6.45cm]{pictures/Benchmark_Beyn_contour.eps}
+\end{center}
+\caption{Benchmarking Test for Beyn Algorithm. \textnormal{Left: normalized differences $e(\omega_k)$ for $\omega_1$ and $\omega_2$. Right: plot of the exact eigenvalues from $100\times100$ quadratic eigenproblem using {\tt polyeig} (blue stars) and the result of Beyn's method (red circles) with $N=200$, $\hat{M}=rand(100,25)$}}
+\end{figure}
+%--------------------------------------------------------------
+Figure \ref{fig:Benchmark_Beyn} confirms the exponential convergence of Beyn's method using a circular contour around 19 eigenvalues. When both eigenvalues and eigenvectors are concerned, the following residual would be an appropriate benchmark:
+\begin{equation}
+\label{eq:Residual}
+\mathrm{res}=\frac{\| A(\hat{\omega})\mathbf{\hat{v}} \|_2 }{\|A(|\hat{\omega}|) \|_F}.
+\end{equation}
+%--------------------------------------------------------------
+
+%--------------------------------------------------------------
+\subsection{Benchmarking Hybrid Beyn-Newton Method}
+%--------------------------------------------------------------
+In the hybrid Beyn-Newton method, the results from Beyn's method are used as the initial guess for Newton's iteration until all eigenvalues converge to a desired level ($e_r<10^{-15}$). The quality of the initial guess is determined by the number of quadrature points on the Beyn contour. Six representative plots are shown in \ref{fig:BeynNewton}. 
+\begin{figure}\label{fig:BeynNewton}
+\begin{center}
+\includegraphics[width=6.45cm]{pictures/NB10.eps}
+\includegraphics[width=6.45cm]{pictures/NB30.eps}
+\includegraphics[width=6.45cm]{pictures/NB50.eps}
+\includegraphics[width=6.45cm]{pictures/NB70.eps}
+\includegraphics[width=6.45cm]{pictures/NB80.eps}
+\includegraphics[width=6.45cm]{pictures/NB150.eps}
+\end{center}
+\caption{Benchmarking Test for Hybrid Beyn-Newton Method. \textnormal{Accelrated Quadratic Convergence of Hybrid Beyn-Newton Method. Initial guess is given by the output of Beyn's contour integral using $N=10,30,50,70,80,150$. All eigenvalues converge before 5 iterations after the $N>80$.}}
+\end{figure}
+In figure \ref{fig:BeynNewton}, the convergence of all 19 eigenvalues are plotted together. While most eigenvalues begin with an idle period in $N=10$, quadratic convergence begins right away for 14 eigenvalues already at $N=30$.
+As the number of sampling points increases, most eigenvalues converge before reaching the 8th iteration. Only a single pair remains after 5iterations when $N=70$, and $N=80$ allows all eigenvalues to rapidly converge as soon as the Newton step begins. 
+
+The purpose of combining the two methods is two-folds. First, compared to Beyn's method alone, the hybrid method requires less computation to arrive at the same level of convergence. Second, compared to Newton's method alone, the use of an 'educated initial guess' guarantees that no eigenvalue will be missed. 
+
+%\begin{figure}\label{fig:Convergence_Hybrid}
+%\begin{center}
+%\includegraphics[width=6.45cm]{pictures/jtble.eps}
+%\includegraphics[width=6.45cm]{pictures/Convergence_Newton.eps}
+%\end{center}
+%\caption{Benchmarking Test for Hybrid Beyn-Newton Method. \textnormal{Left: normalized differences $e(\omega_k)$ for $\omega_1$ and $\omega_2$. Right: plot of the exact eigenvalues from $60 \times 60$ quadratic eigenproblem using {\tt polyeig} (blue stars) and the result of Beyn's method (red circles) with $N=150$, $\hat{M}=rand(60,25)$}}
+%\end{figure}
+
+An additional Newton step produces $\mathcal{O}(n_{step}\times m^3 )$ work, while an additional contour point $N$ produces $\mathcal{O}(Nk m^3)$ work. If we only consider the amount of flops, $N=30$ is superior to $N=50$ or $N=70$ due to the large computation volume incurred by an increment in $N$. 
+
+%--------------------------------------------------------------
+\pagebreak
+\subsection{Discussion and Plans}
+%\subsection{$N=30$ vs. $N=80$}
+%In addition to the current analysis, a more detailed investigation 
+
+\subsubsection{Convergence of Beyn's Method affected by Eigenvalues on the Contour}
+Care must be taken to ensure that the contour point does not coincide with an eigenvalue. Figure \ref{fig:overlap} shows how the convergence of Beyn's method is slowed down by the existence of an eigenvalue very close to the contour.
+%--------------------------------------------------------------
+\begin{figure}\label{fig:overlap}
+\begin{center}
+\includegraphics[width=9cm]{pictures/Benchmark_EigenvalueOnContour.eps}\\
+\includegraphics[width=6.45cm]{pictures/Benchmark_EigenvalueOnContour_contour.eps}
+\includegraphics[width=6.45cm]{pictures/Benchmark_EigenvalueOnContour_magn.eps}
+\end{center}
+\caption{Benchmarking Test for Contour overlapping with an Eigenvalue. \textnormal{Left: normalized differences $e(\omega_k)$ for $\omega_1$ and $\omega_2$. Right: plot of the exact eigenvalues from $60 \times 60$ quadratic eigenproblem using {\tt polyeig} (blue stars) and the result of Beyn's method (red circles) with $N=150$, $\hat{M}=rand(60,25)$}}
+\end{figure}
+
+\subsubsection{Independence of convergence from the sampling matrix $\hat{M}$}
+We also note that the dimension of the sampling matrix $\hat{M}$ did not produce a clear difference in the eigenvalue convergence. The most important factor for $M\in \mathbb{R}^{n\times l}$ is that it preserves the rank of the original problem, and is not accidentally orthogonal to an existing mode. The use of a random matrix is thus suited for this purpose.
+
+\subsubsection{Plan: SLEPC implementation}
+For the versatile treatment of eigenproblems arising from discretized PDEs, the codes currently written in MATLAB are being translated into C/C++ using Slepc. Another functionality needed is a rigorous benchmarking method that can automatically determine when to switch to Newton iteration, without knowing how much more iteration would occur. 
+
+%--------------------------------------------------------------
+\section{Conclusion} 
+We propose a hybrid solution method for NEPs by using a contour integral method with nonlinear inverse iteration based on Newton's method. We implement and verify that the contour integral method is capable of constructing a successful initial guess for Newton's method. For the test case of 19 eigenvalues inside a circular contour around the origin of the complex plane, the quadrature of N=30 already forced 14 eigenvalues to converge after 8 newton iterations.
+
+The hybridization scheme between the two methods depend on the dimensionality and the nonlinearity involved in each problem. We aim to test more test cases of practical importance using the proposed Beyn-Newton method in the near future. 
+
+\clearpage
+%--------------------------------------------------------------
+\bibliography{Proposalref_20150320}
+%\bibliographystyle{plain}
+\bibliographystyle{unsrtnat}
+\end{document}

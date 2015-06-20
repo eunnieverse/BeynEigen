@@ -13,6 +13,7 @@ function [k, N, BeynA0, BeynA1, w_Beyn, i_Beyn, w_Beyn_err]=...
     %          cdouble w_Beyn[k]: list of eigenvalues found 
     %          cdouble w_Beyn_err[k]: list of corresponding error
     %          int i_Beyn[] list of corresponding eigenvalue index
+<<<<<<< HEAD
     % Yoonkyung Eunnie Lee
     % Last Updated 2015.06.18
     
