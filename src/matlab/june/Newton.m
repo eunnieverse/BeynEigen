@@ -7,12 +7,13 @@ function [w_Newt,i_Newt] = Newton(w_Beyn,i_Beyn,funA,fundA)
 %          int i_Newt[]: list of corresponding eigenvalue index 
 % Yoonkyung Eunnie Lee 
 % Last Updated 2015.06.18
-    nnmax = 20; % maximum iteration for Newton Run
+    nnmax = 30; % maximum iteration for Newton Run
     i_Newt = zeros(length(i_Beyn),1); 
     w_Newt = zeros(length(i_Beyn),1); 
     mm=0; %index for i_Newt 
     for ll=1:length(i_Beyn) %index for i_Beyn
         [wj, jj]=NewtInv(funA, fundA, w_Beyn(ll), nnmax);
+        %[vj, wj, jj]= NewtInv2(funA,fundA,v_Beyn(:,ll),w_Beyn(ll),nn)
         if(jj<nnmax)%%if converged to machine precision
             mm=mm+1; 
             i_Newt(mm) = i_Beyn(ll); 

@@ -1,79 +1,170 @@
-function [k, N, BeynA0, BeynA1, w_Beyn, i_Beyn, w_Beyn_err]=...
-        Beyn(k_in,N_in,BeynA0_in,BeynA1_in,...
-             n,funA,fundA,...
-             w_Newt,i_Newt,w_err_cut)
-    %  function Beyn
-    % inputs:  int k_guess: guess for number of eigenvalues
-    %          int N_in: quadrature pts 
-    %          double w_err_cutoff: Beyn error cutoff (what to
-    %          consider converged) 
-    %          funA, fundA
-    % outputs: int k, int N:  # of eigenvalues, # of quadrature pt
-    %          int n: size of funA 
+%  function Beyn
+% Yoonkyung Eunnie Lee
+% Last Updated 2015.06.22
+
+% distinguish first run and repeated runs 
+function [k, N, BeynA0, BeynA1, w_Beyn, w_Beyn_err]=...
+  Beyn(N_h,k_h,BeynA0_h,BeynA1_h,n,funA,fundA, w_Newt,i_Newt)
+    % inputs:  (k, N, BeynA0, BeynA1)_h: Beyn matrix, previous data
+    %            int k_h: length(w)
+    %            int N_h: quadrature size
+    %          n, funA, fundA: problem definition funA=A(w)
+    %          w_Newt, i_Newt: converged eigenvalues that need removal
+    % outputs: k, N, BeynA0, BeynA1: Beyn matrix data for N=N; 
     %          cdouble w_Beyn[k]: list of eigenvalues found 
     %          cdouble w_Beyn_err[k]: list of corresponding error
-    %          int i_Beyn[] list of corresponding eigenvalue index
-<<<<<<< HEAD
-    % Yoonkyung Eunnie Lee
-    % Last Updated 2015.06.18
-    
-    %--- define contour 
-    q = ceil(log2(N_in)); %N should be 2^q 
-    N = 2^q; 
+    N = N_h*2;
 
+    %--- define nested contour
     g0=0.0; rho=1.0;    %circular contour
-    [g, gp] = circcont_nest(g0, rho, N); % construct contour N
+    [g, dg] = circcont_nest(g0, rho, N); % construct contour N
 
-    %--- determine the size guess for this problem 
-    if(N<8) 
-        funsize = @(z) trace(funA(z)\fundA(z));
-        k_calc = cint(funsize,g,gp); 
-        l = ceil(max(k_calc,k_in)); 
-    else
-        l = ceil(k_in+2);
-    end
-    M = rand(n,l);      % dimension of initial arbitrary mat. n x k 
+    %--- decide size of random matrix 
+    l = k_h+2;%
+    M = rand(n,l);      % dimension of initial arbitrary mat. n x l 
     
-    %--- compute BeynA0, BeynA1 & store BeynA0_in, BeynA1_in 
-    if(N>4)                  % if previous run data exist
-        BeynA0 = BeynA0_in*(N/2)*i; % sum from N/2 run, if they are given 
-        BeynA1 = BeynA1_in*(N/2)*i; % sum from N/2 run, if they are given
-        Nlist = N/2+1:N; 
-    else Nlist =1:N; end            % if this is the first run 
+    %--- compute Beyn matrices BeynA0, BeynA1 from M 
+    [BeynA0,BeynA1]=getBeyn(BeynA0_h,BeynA1_h,N,M,n,funA,w_Newt,g,dg);
+
+    l_correct=false;
+    while(l_correct==false)
+        
+        
+        
+        l_correct=true; 
+    end
+    
+    
+    %--- update using an added column for M 
+    M_add = rand(n,1); 
+    %---
+    %    [UpdateA0,UpdateA1,UpdateA0_h,UpdtaeA1_h]=updateBeyn(funA,M_add,N,g,dg); 
+    for j=1:N; %should add the change for all N points
+        invAj = funA(g(j))\M_add;
+        if(w_Newt) %% remove known eigenvalues from Newton step 
+            rmw = ones(1,length(w_Newt))(g(j) - w_Newt); %% (z-w0)(z-w1)..
+        else
+            rmw=1; 
+        end
+        UpdateA0 = UpdateA0 + invAj * rmw * dg(j); 
+        UpdateA1 = UpdateA1 + invAj * rmw * g(j) * dg(j); 
+        if(j==N/2)
+            UpdateA0_h = UpdateA0/(N*i/2); 
+            UpdateA1_h = UpdateA1/(N*i/2); 
+        end
+    end
+    UpdateA0 = UpdateA0 /(N*i); 
+    UpdateA1 = UpdateA1 /(N*i);     
+    %---
+    M=[M M_add];   % update M  
+    l = size(M,2); % update l ; 
+    BeynA0 = BeynA0 + UpdateA0; 
+    BeynA1 = BeynA1 + UpdateA1; 
+    BeynA0_h = BeynA0_h + UpdateA0_h; 
+    BeynA1_h = BeynA1_h + UpdateA1_h; 
+    %--- 
+    
+    %--- SVD of BeyNA0 
+    [V,Sigma,W] = svd(BeynA0); 
+    s = diag(Sigma(1:l,1:l)); %--- first l elements, column vector s
+    k= sum(s > 1e-15);        %--- rank computation 
+                              % have to increase l if l<k 
+    if(n<k)
+        error('n<rank k , use higher order than BeynA1');
+    elseif(l<k)
+        disp('l<rank k, increase l');
+        l=k+2;
+        
+    else                 %--- compute w_Beyn 
+        V0 = V(1:n,1:k);          %% cut size of V0, W0, Sigma0 using k.
+        W0 = W(1:l,1:k);
+        s0 = s(1:k);              %%sigma is in decending order. 
+        Sinv = diag(1./s0);       
+        B = conj(V0')*BeynA1*W0*Sinv; %%linearized matrix
+        [vlist, wlist]=eig(B);    
+        w_Beyn = diag(wlist);     %%convert into vector;
+    end
+    
+    
+    %--- Compute w_Beyn, w_Beyn_half, and w_Beyn_error 
+    [v_Beyn, w_Beyn, k]=BeynSub(V,Sigma,W,BeynA1, l); 
+    [v_Beyn_h, w_Beyn_h, k_h]=BeynSub(BeynA0_h, BeynA1_h, l);
+
+    w_Beyn_err=abs(w_Beyn-w_Beyn_h);                       %% error
+    %---------------------------------------------------------------------   
+   
+function [vlist, wlist] = BeynSub(V0,s0,W0,BeynA1,l)
+%--- Beyn subroutine for each given BeynA0, BeynA1     
+%---------------------------------------------------------------------   
+
+function [k,N,BeynA0,BeynA1,w_Beyn,w_Beyn_err]=Beyn_initialize(k_in,n,funA,fundA)
+%% The first run of Beyn cycle, performs size estimation
+    N = 4; %start with N=4 and increase N later. 
+    %--- define nested contour
+    g0=0.0; rho=1.0;    %circular contour
+    [g, dg] = circcont_nest(g0, rho, N); % construct contour N
+
+    %--- decide size of random matrix 
+    funsize = @(z) trace(funA(z)\fundA(z));
+    k_calc = cint(funsize,g,dg); 
+    l = k_calc+2; 
+    M = rand(n,l);      % dimension of initial arbitrary mat. n x l 
+
+    %--- compute Beyn matrices BeynA0, BeynA1
+    Nlist =1:N;
     for j=Nlist
         invAj = funA(g(j))\M;       
-        BeynA0 = BeynA0 + invAj * gp(j); 
-        BeynA1 = BeynA1 + invAj * g(j) * gp(j); 
+        BeynA0 = BeynA0 + invAj * dg(j); 
+        BeynA1 = BeynA1 + invAj * g(j) * dg(j); 
         if(j==N/2)% store the integral from N/2 run 
-            BeynA0_in = BeynA0/(N*i/2);  
-            BeynA1_in = BeynA1/(N*i/2); 
+            BeynA0_h = BeynA0/(N*i/2);  
+            BeynA1_h = BeynA1/(N*i/2); 
         end
     end
     BeynA0 = BeynA0 /(N*i); 
-    BeynA1 = BeynA1 /(N*i);    
+    BeynA1 = BeynA1 /(N*i);       
+    %--- Compute w_Beyn, w_Beyn_half, and w_Beyn_error 
+    [v_Beyn, w_Beyn, k] = BeynSub(BeynA0, BeynA1, l); 
+    [v_Beyn_h, w_Beyn_h, k_h] = BeynSub(BeynA0_h, BeynA1_h, l);
+    w_Beyn_err = abs(w_Beyn-w_Beyn_h);                       %% error
     
-    % w_Beyn, i_Beyn, w_Beyn_err
-     
-    %--- Compute the SVD of BeynA0
-    [V,Sigma,W] = svd(BeynA0); 
-    Sigma = Sigma(1:l,1:l); % first l elements, diagonal matrix 
-    s = diag(Sigma); % column
-    k= sum(s > 1e-15);      %% rank k of BeynA0. 
-    if(n<k)
-        error('n<rank k , use Beyn2 instead of Beyn1');
-    elseif(l<k)
-        error('l<rank k, redo Beyn1 with increased l');
-        return; 
-    end   
-    %---------------------------------------------------------------------
-    V0 = V(1:n,1:k);          %% cut size of V0, W0, Sigma0 using k. 
-    W0 = W(1:l,1:k);
-    s0=s(1:k); %%sigma is in decending order. 
-    Sinv = diag(1./s0); 
-    %---------------------------------------------------------------------
-    B = conj(V0')*BeynA1*W0*Sinv; %%linearized matrix 
-    [vlist, wlist]=eig(B); %% qz algorithm 
-    w_Beyn = diag(wlist); %%convert into vector;
-    i_Beyn = (1:length(w_Beyn))';
-    w_Beyn_err=w_Beyn-w_Beyn_half; 
-    %---------------------------------------------------------------------
+    
+    
+    
+function [BeynA0,BeynA1]=getBeyn(BeynA0_h,BeynA1_h,N,M,n,funA,w_Newt,g,dg)
+%% get Beyn matrices for a given N and data from N/2 
+    BeynA0 = BeynA0_h*(N/2)*i; % sum from N/2 run, if they are given 
+    BeynA1 = BeynA1_h*(N/2)*i; % sum from N/2 run, if they are given
+    Nlist = (N/2+1):N; 
+    for j=Nlist
+        invAj = funA(g(j))\M;
+        if(w_Newt) %% remove known eigenvalues from Newton step 
+            rmw = ones(1,length(w_Newt))(g(j) - w_Newt); %% (z-w0)(z-w1)..
+        else
+            rmw=1; 
+        end
+        BeynA0 = BeynA0 + invAj * rmw * dg(j); 
+        BeynA1 = BeynA1 + invAj * rmw * g(j) * dg(j); 
+    end
+    BeynA0 = BeynA0 /(N*i); 
+    BeynA1 = BeynA1 /(N*i);       
+
+    
+function [BeynA0, BeynA1, BeynA0_h, BeynA1_h]=getBeyn(N, M, n, funA, w_Newt, g, dg)
+%% get Beyn matrices for a given N without data from N/2
+    BeynA0 = zeros(n,n); 
+    BeynA1 = zeros(n,n); 
+    Nlist = 1:N; 
+    for j=Nlist
+        invAj = funA(g(j))\M;
+        if(w_Newt) %% remove known eigenvalues from Newton step 
+            rmw = ones(1,length(w_Newt))(g(j) - w_Newt); %% (z-w0)(z-w1)..
+        else
+            rmw=1; 
+        end
+        BeynA0 = BeynA0 + invAj * rmw * dg(j); 
+        BeynA1 = BeynA1 + invAj * rmw * g(j) * dg(j); 
+    end
+    BeynA0 = BeynA0 /(N*i); 
+    BeynA1 = BeynA1 /(N*i);
+    

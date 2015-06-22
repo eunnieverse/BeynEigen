@@ -12,7 +12,8 @@ function [vj, wj, j]= NewtInv2(funA,fundA,v0,w0,nn)
         xj1 = (funA(wj)\fundA(wj))*vj; 
         wj1 = wj-eH*vj/(eH*xj1); 
         vj1 = xj1/(eH*xj1); 
-        if(abs(wj-wj1)<1e-10)
+        %if(abs(wj-wj1)<1e-15)
+        if(wj==wj1); 
             return;
         else
             vj = vj1;
