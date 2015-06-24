@@ -33,7 +33,7 @@ saveeps = 1;
 extension = '.png';
 cfig =figure(); 
 scatter(real(w_rand),imag(w_rand),'kx');  hold on; 
-scatter(real(g),imag(g),'b.'); axis image;
+scatter(real(g),imag(g),'b.'); axis equal;
 plot(real(w_matrix(30,:)),imag(w_matrix(30,:)),'r.-'); 
 h=legend('all eigvals','contour','moved eigval','location','northeastoutside');
 savefigname='ContourDistance';
