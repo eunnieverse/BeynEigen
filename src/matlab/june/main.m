@@ -1,7 +1,6 @@
 % function main()
 % Yoonkyung Eunnie Lee 
-% last modified on 2015.06.22
-
+% last modified on 2015.06.24
 clear all; 
 close all; 
 
@@ -39,4 +38,4 @@ while(done<0)
     end
 end
 
-e = cputime - t0 ; 
+e = cputime - t0 ; %% store time 

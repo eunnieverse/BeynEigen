@@ -1,8 +1,7 @@
 %  function Beyn
 % Yoonkyung Eunnie Lee
-% Last Updated 2015.06.23
+% Last Updated 2015.06.24
 
-% distinguish first run and repeated runs 
 function [k, N, BeynA0, BeynA1, M, w_Beyn, w_Beyn_err]=...
   Beyn(N,k_h,BeynA0_h,BeynA1_h,w_Beyn_h,M_h,n,funA,fundA,w_Newt,i_Newt)
     % inputs:  (k, N, BeynA0, BeynA1, M, w_Beyn_h)_h: Beyn matrix, previous data
@@ -76,11 +75,9 @@ function [k, N, BeynA0, BeynA1, M, w_Beyn, w_Beyn_err]=...
         
     w_Beyn_err=abs(w_Beyn-w_Beyn_h);  % error    
 %---------------------------------------------------------------------   
-function [k, N, BeynA0, BeynA1, M, w_Beyn]=...
-    
-function [k,N,BeynA0,BeynA1,w_Beyn,w_Beyn_err]=Beyn_initialize(k_in,n,funA,fundA)
+function [k,N,BeynA0,BeynA1,w_Beyn,w_Beyn_err]=
+    Beyn_initialize(k_in,N,n,funA,fundA)
 %% The first run of Beyn cycle, performs size estimation
-    N = 4; %start with N=4 and increase N later. 
     %--- define nested contour
     g0=0.0; rho=1.0;    %circular contour
     [g, dg] = circcont_nest(g0, rho, N); % construct contour N
@@ -88,8 +85,9 @@ function [k,N,BeynA0,BeynA1,w_Beyn,w_Beyn_err]=Beyn_initialize(k_in,n,funA,fundA
     %--- decide size of random matrix 
     funsize = @(z) trace(funA(z)\fundA(z));
     k_calc = cint(funsize,g,dg); 
-    l = k_calc+2; 
+    l = k_calc+2;
     M = rand(n,l);      % dimension of initial arbitrary mat. n x l 
+    rmw=ones(N,1); %initialize 
 
     %--- compute Beyn matrices BeynA0, BeynA1
     Nlist =1:N;
@@ -104,6 +102,31 @@ function [k,N,BeynA0,BeynA1,w_Beyn,w_Beyn_err]=Beyn_initialize(k_in,n,funA,fundA
     end
     BeynA0 = BeynA0 /(N*i); 
     BeynA1 = BeynA1 /(N*i);               
+    
+    %--- compute Beyn matrices BeynA0, BeynA1 using previous M 
+    [BeynA0,BeynA1]=getBeyn(BeynA0_h,BeynA1_h,N,M,n,funA,rmw,g,dg);
+
+    l_correct=false;
+    while(l_correct==false)
+        %--- run svd of BeynA0 and check size to see if l>k 
+        [V,Sigma,W] = svd(BeynA0); 
+        s = diag(Sigma(1:l,1:l)); %--- first l elements, column vector s
+        k= sum(s > 1e-15);        %--- rank computation 
+        if(n<k) error('n<rank k , use higher order than BeynA1'); end
+        if(k+2<=l)                %--- l should be larger than k+1
+            l_correct=true;       %--- exit while loop 
+        else                      %--- increase size of M
+            M_add = rand(n,1);    % additional column 
+            [UpdateA0,UpdateA1,UpdateA0_h,UpdtaeA1_h]=updateBeyn(funA,M_add,N,rmw,g,dg); 
+            BeynA0 = BeynA0 + UpdateA0; 
+            BeynA1 = BeynA1 + UpdateA1; 
+            BeynA0_h = BeynA0_h + UpdateA0_h; 
+            BeynA1_h = BeynA1_h + UpdateA1_h; 
+            M = [M M_add];        % update M  
+            l = l+1;              % update l 
+        end %% end if..else
+    end %% end while(l_correct==false)  
+
     
 function [BeynA0,BeynA1]=getBeyn(BeynA0_h,BeynA1_h,N,M,n,funA,rmw,g,dg)
 %% get Beyn matrices for a given N and data from N/2 
