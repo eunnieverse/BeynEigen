@@ -1,7 +1,3 @@
-%  function Beyn
-% Yoonkyung Eunnie Lee
-% Last Updated 2015.06.24
-
 function [k, N, BeynA0, BeynA1, M, w_Beyn, w_Beyn_err]=...
   Beyn(N,k_h,BeynA0_h,BeynA1_h,w_Beyn_h,M_h,n,funA,fundA,w_Newt,i_Newt)
     % inputs:  (k, N, BeynA0, BeynA1, M, w_Beyn_h)_h: Beyn matrix, previous data
@@ -15,7 +11,7 @@ function [k, N, BeynA0, BeynA1, M, w_Beyn, w_Beyn_err]=...
     N = N*2;
     l_h = size(M,2);              % store previous size of l  
     %--- define nested contour
-    g0=0.0; rho=1.0;              % circular contour
+    g0=0.0; rho=0.5;              % circular contour
     [g, dg] = circcont_nest(g0, rho, N);  
     
     %--- define rmw(N): (z-w0)(z-w1).. at every quadrature pt.
@@ -40,7 +36,7 @@ function [k, N, BeynA0, BeynA1, M, w_Beyn, w_Beyn_err]=...
             l_correct=true;       %--- exit while loop 
         else                      %--- increase size of M
             M_add = rand(n,1);    % additional column 
-            [UpdateA0,UpdateA1,UpdateA0_h,UpdtaeA1_h]=updateBeyn(funA,M_add,N,rmw,g,dg); 
+            [UpdateA0,UpdateA1,UpdateA0_h,UpdateA1_h]=updateBeyn(funA,M_add,N,rmw,g,dg); 
             BeynA0 = BeynA0 + UpdateA0; 
             BeynA1 = BeynA1 + UpdateA1; 
             BeynA0_h = BeynA0_h + UpdateA0_h; 
@@ -74,61 +70,12 @@ function [k, N, BeynA0, BeynA1, M, w_Beyn, w_Beyn_err]=...
     end %% end if(l_h ~= l)
         
     w_Beyn_err=abs(w_Beyn-w_Beyn_h);  % error    
-%---------------------------------------------------------------------   
-function [k,N,BeynA0,BeynA1,w_Beyn,w_Beyn_err]=
-    Beyn_initialize(k_in,N,n,funA,fundA)
-%% The first run of Beyn cycle, performs size estimation
-    %--- define nested contour
-    g0=0.0; rho=1.0;    %circular contour
-    [g, dg] = circcont_nest(g0, rho, N); % construct contour N
 
-    %--- decide size of random matrix 
-    funsize = @(z) trace(funA(z)\fundA(z));
-    k_calc = cint(funsize,g,dg); 
-    l = k_calc+2;
-    M = rand(n,l);      % dimension of initial arbitrary mat. n x l 
-    rmw=ones(N,1); %initialize 
+end%%function 
 
-    %--- compute Beyn matrices BeynA0, BeynA1
-    Nlist =1:N;
-    for j=Nlist
-        invAj = funA(g(j))\M;       
-        BeynA0 = BeynA0 + invAj * dg(j); 
-        BeynA1 = BeynA1 + invAj * g(j) * dg(j); 
-        if(j==N/2)% store the integral from N/2 run 
-            BeynA0_h = BeynA0/(N*i/2);  
-            BeynA1_h = BeynA1/(N*i/2); 
-        end
-    end
-    BeynA0 = BeynA0 /(N*i); 
-    BeynA1 = BeynA1 /(N*i);               
-    
-    %--- compute Beyn matrices BeynA0, BeynA1 using previous M 
-    [BeynA0,BeynA1]=getBeyn(BeynA0_h,BeynA1_h,N,M,n,funA,rmw,g,dg);
-
-    l_correct=false;
-    while(l_correct==false)
-        %--- run svd of BeynA0 and check size to see if l>k 
-        [V,Sigma,W] = svd(BeynA0); 
-        s = diag(Sigma(1:l,1:l)); %--- first l elements, column vector s
-        k= sum(s > 1e-15);        %--- rank computation 
-        if(n<k) error('n<rank k , use higher order than BeynA1'); end
-        if(k+2<=l)                %--- l should be larger than k+1
-            l_correct=true;       %--- exit while loop 
-        else                      %--- increase size of M
-            M_add = rand(n,1);    % additional column 
-            [UpdateA0,UpdateA1,UpdateA0_h,UpdtaeA1_h]=updateBeyn(funA,M_add,N,rmw,g,dg); 
-            BeynA0 = BeynA0 + UpdateA0; 
-            BeynA1 = BeynA1 + UpdateA1; 
-            BeynA0_h = BeynA0_h + UpdateA0_h; 
-            BeynA1_h = BeynA1_h + UpdateA1_h; 
-            M = [M M_add];        % update M  
-            l = l+1;              % update l 
-        end %% end if..else
-    end %% end while(l_correct==false)  
 
     
-function [BeynA0,BeynA1]=getBeyn(BeynA0_h,BeynA1_h,N,M,n,funA,rmw,g,dg)
+function [BeynA0,BeynA1]=getBeyn(BeynA0_h,BeynA1_h,N,M,funA,rmw,g,dg)
 %% get Beyn matrices for a given N and data from N/2 
     BeynA0 = BeynA0_h*(N/2)*i; % sum from N/2 run, if they are given 
     BeynA1 = BeynA1_h*(N/2)*i; % sum from N/2 run, if they are given
@@ -140,12 +87,12 @@ function [BeynA0,BeynA1]=getBeyn(BeynA0_h,BeynA1_h,N,M,n,funA,rmw,g,dg)
     end
     BeynA0 = BeynA0 /(N*i); 
     BeynA1 = BeynA1 /(N*i);       
-
+end%%function 
     
-function [BeynA0, BeynA1, BeynA0_h, BeynA1_h]=getBeyn(N,M,n,funA,rmw,g,dg)
+function [BeynA0, BeynA1, BeynA0_h, BeynA1_h]=getBeyn2(N,M,n,funA,rmw,g,dg)
 %% get Beyn matrices for a given N without data from N/2
-    BeynA0 = zeros(n,n); 
-    BeynA1 = zeros(n,n); 
+    BeynA0 = zeros(size(M)); 
+    BeynA1 = zeros(size(M)); 
     Nlist = 1:N; 
     for j=Nlist
         invAj = funA(g(j))\M;
@@ -154,19 +101,5 @@ function [BeynA0, BeynA1, BeynA0_h, BeynA1_h]=getBeyn(N,M,n,funA,rmw,g,dg)
     end
     BeynA0 = BeynA0 /(N*i); 
     BeynA1 = BeynA1 /(N*i);
-    
+end%%function 
 
-function [UpdateA0,UpdateA1,UpdateA0_h,UpdateA1_h]=updateBeyn(funA,M_add,N,rmw,g,dg); 
-
-    for j=1:N; %should add the change for all quadrature points
-        invAj = funA(g(j))\M_add;
-        UpdateA0 = UpdateA0 + invAj * rmw(j) * dg(j); 
-        UpdateA1 = UpdateA1 + invAj * rmw(j) * g(j) * dg(j); 
-        if(j==N/2)
-            UpdateA0_h = UpdateA0/(N*i/2); 
-            UpdateA1_h = UpdateA1/(N*i/2); 
-        end
-    end
-    UpdateA0 = UpdateA0 /(N*i);
-    UpdateA1 = UpdateA1 /(N*i);
-    %---
