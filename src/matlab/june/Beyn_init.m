@@ -58,5 +58,4 @@ function [k,N,BeynA0,BeynA1,w_Beyn,w_Beyn_err]=Beyn_init(k_in,N,g,dg,n,funA,fund
     for ii=1:k
         w_Beyn_err(ii)=min(abs(w_Beyn(ii)-w_Beyn_h));
     end
-    disp(w_Beyn_err); 
 end%%function 
