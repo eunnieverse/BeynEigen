@@ -10,40 +10,42 @@ function [k,M,N,BeynA0,BeynA1,w_Beyn,w_Beyn_err]=Beyn_init(k_in,N,n,funA,fundA)
     disp(sprintf('l=%d',l)); 
     M = rand(n,l);      % dimension of initial arbitrary mat. n x l 
     
-    rmw=ones(N,1); % initialize rmw 
     %--- compute Beyn matrices BeynA0, BeynA1
-    Nlist =1:N;
+    Nlist=1:N;
     BeynA0=zeros(size(M)); 
     BeynA1=zeros(size(M)); 
-    for j=Nlist 
+    for j=Nlist
         invAj = funA(g(j))\M;
         BeynA0 = BeynA0 + invAj * dg(j); 
         BeynA1 = BeynA1 + invAj * g(j) * dg(j); 
         if(j==N/2)% store the integral from N/2 run 
-            BeynA0_h = BeynA0/(N*i/2);  
-            BeynA1_h = BeynA1/(N*i/2); 
+            BeynA0_h = BeynA0/(N*1i/2);  
+            BeynA1_h = BeynA1/(N*1i/2); 
         end
     end
-    BeynA0 = BeynA0 /(N*i); 
-    BeynA1 = BeynA1 /(N*i);               
+    BeynA0 = BeynA0 /(N*1i); 
+    BeynA1 = BeynA1 /(N*1i);               
 
     l_correct=false;
     while(l_correct==false)
         %--- run svd of BeynA0 and check size to see if l>k 
         [V,Sigma,W] = svd(BeynA0); 
         disp(size(Sigma)); 
-        s = diag(Sigma(1:l,1:l)); %--- first l elements, column vector s
-        k= sum(s > 1e-15);        %--- rank computation 
+        s = diag(Sigma(1:l,1:l)); %--- first l elements, column
+                                  %vector s
+        disp(s); 
+        k= sum(s > 1e-20);        %--- rank computation
+        disp(sprintf('calculated k=%d',k));
         if(n<k) error('n<rank k , use higher order than BeynA1'); end
         if(k+2<=l)                %--- l should be larger than k+1
             l_correct=true;       %--- exit while loop 
         else                      %--- increase size of M
             M_add = rand(n,1);    % additional column 
             [UpdateA0,UpdateA1,UpdateA0_h,UpdateA1_h]=updateBeyn(funA,M_add,N,rmw,g,dg); 
-            BeynA0 = BeynA0 + UpdateA0; 
-            BeynA1 = BeynA1 + UpdateA1; 
-            BeynA0_h = BeynA0_h + UpdateA0_h; 
-            BeynA1_h = BeynA1_h + UpdateA1_h; 
+            BeynA0 = [BeynA0 UpdateA0]; 
+            BeynA1 = [BeynA1 UpdateA1]; 
+            BeynA0_h = [BeynA0_h UpdateA0_h]; 
+            BeynA1_h = [BeynA1_h UpdateA1_h]; 
             M = [M M_add];        % update M  
             l = l+1;              % update l 
         end %% end if..else

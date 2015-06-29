@@ -37,10 +37,10 @@ function [k, N, BeynA0, BeynA1, M, w_Beyn, w_Beyn_err]=...
         else                      %--- increase size of M
             M_add = rand(n,1);    % additional column 
             [UpdateA0,UpdateA1,UpdateA0_h,UpdateA1_h]=updateBeyn(funA,M_add,N,rmw,g,dg); 
-            BeynA0 = BeynA0 + UpdateA0; 
-            BeynA1 = BeynA1 + UpdateA1; 
-            BeynA0_h = BeynA0_h + UpdateA0_h; 
-            BeynA1_h = BeynA1_h + UpdateA1_h; 
+            BeynA0 = [BeynA0 UpdateA0]; 
+            BeynA1 = [BeynA1 UpdateA1]; 
+            BeynA0_h = [BeynA0_h UpdateA0_h]; 
+            BeynA1_h = [BeynA1_h UpdateA1_h]; 
             M = [M M_add];        % update M  
             l = l+1;              % update l 
         end %% end if..else

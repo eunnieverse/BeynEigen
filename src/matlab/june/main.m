@@ -4,12 +4,13 @@
 clear all; close all; 
 
 t0 = cputime;
-%% problem definition 
+%% gproblem definition 
 n=30;
 filebase = 'poly2_30'; 
-[coeffs, funA, fundA]=polydef(filebase,2,30); 
+%%[coeffs, funA, fundA]=polydef(filebase,2,30); 
+load(strcat(filebase,'_fun.mat')); 
 %% starting values 
-N=4; 
+N=64; 
 done=-1; %% indicator to stop simulation 
 w_Newt = []; 
 i_Newt = []; 
@@ -17,7 +18,7 @@ k_guess=60;
 %% limits
 w_err_cut = 1e-5; %% Beyn error cutoff 
 %% First Beyn Step (initialize)
-[k,M,N,BeynA0,BeynA1,w_Beyn,w_Beyn_err]=Beyn_init(k_guess,N,n,funA,fundA);
+[k,M,N,BeynA0,BegynA1,w_Beyn,w_Beyn_err]=Beyn_init(k_guess,N,n,funA,fundA);
 disp(sprintf('Beyn_init, k=%d,N=%d;',k,N)); 
 kk=0; %number of w_Beyn_conv 
 i_Beyn_conv=zeros(length(w_Beyn)); %make integer array 
