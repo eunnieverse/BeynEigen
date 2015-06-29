@@ -1,4 +1,4 @@
-function [k,N,BeynA0,BeynA1,w_Beyn,w_Beyn_err]=Beyn_init(k_in,N,g,dg,n,funA,fundA)
+function [k,N,BeynA0,BeynA1,w_Beyn,w_Beyn_err,v_Beyn]=Beyn_init(k_in,N,g,dg,n,funA,fundA)
 %% The first run of Beyn cycle
 
 %     %% perform size estimation
