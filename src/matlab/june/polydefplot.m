@@ -1,4 +1,4 @@
-function polydefplot(filebase,gamma)
+function cfig=polydefplot(filebase,gamma)
     extension='.jpg';
     savefig=1; 
     saveeps=1; 

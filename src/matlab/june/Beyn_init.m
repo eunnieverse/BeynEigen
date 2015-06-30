@@ -1,20 +1,22 @@
-function [k,N,BeynA0,BeynA1,w_Beyn,w_Beyn_err,v_Beyn]=Beyn_init(k_in,N,g,dg,n,funA,fundA)
+function [k,N,BeynA0,BeynA1,w_Beyn,w_Beyn_err,v_Beyn]=...
+    Beyn_init(N,g,dg,n,funA)
 %% The first run of Beyn cycle
 
-%     %% perform size estimation
+    %% perform size estimation: BAD RESULTS 
 %     %--- decide size of random matrix 
 %     funsize = @(z) trace(funA(z)\fundA(z));
 %     k_calc = cint(funsize,g,dg); 
 %     disp(sprintf('k_calc=%d',k_calc));
 %     l = floor(real(k_calc))+3;
 %     disp(sprintf('l=%d',l)); 
-%     M = rand(n,l);      % dimension of initial arbitrary mat. n x l 
-    
 
+    %% M 
+    % M = rand(n,l);      % dimension of initial arbitrary mat. n x l     
     %--- for initial round, do not use M. use M=eye(n); 
     M = eye(n); 
     l=n; 
-    %--- compute Beyn matrices BeynA0, BeynA1
+    
+    %% --- compute Beyn matrices BeynA0, BeynA1
     Nlist=1:N;
     BeynA0=zeros(size(M)); 
     BeynA1=zeros(size(M)); 
@@ -30,7 +32,7 @@ function [k,N,BeynA0,BeynA1,w_Beyn,w_Beyn_err,v_Beyn]=Beyn_init(k_in,N,g,dg,n,fu
     BeynA0 = BeynA0 /(N*1i); 
     BeynA1 = BeynA1 /(N*1i);               
 
-    %--- compute w_Beyn
+    %% --- compute w_Beyn
     [V,Sigma,W] = svd(BeynA0); 
     s = diag(Sigma(1:l,1:l)); %--- first l elements, column vector s        
     k= sum(s > 1e-15);        %--- rank computation 
