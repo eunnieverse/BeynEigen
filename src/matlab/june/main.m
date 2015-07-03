@@ -1,11 +1,13 @@
 % function main()
 % Yoonkyung Eunnie Lee 
-% last modified on 2015.06.29
+% last modified on 2015.07.02
+
+% Perhaps M need not ever be decreased. 
 
 clear all; close all;
-showplot=0; 
-savefig=1;
-saveeps=1;
+showplot=1; 
+savefig=0;
+saveeps=0;
 extension='.jpg';
 t0 = cputime;
 %% problem definition 
@@ -60,7 +62,7 @@ if(showplot==1)
     if(saveeps==1); saveas(cfig,strcat(savefigname,'.eps'),'epsc');end;
 end;
 %% Next Beyn Step
-%--- define random matrix M; 
+%--- define random matrix M ; 
 M=rand(n,kk);
 while(done<0)
 %---first not using rmw 
