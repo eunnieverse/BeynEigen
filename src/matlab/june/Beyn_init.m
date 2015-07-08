@@ -1,5 +1,5 @@
 function [k,N,BeynA0,BeynA1,w_Beyn,w_Beyn_err,v_Beyn]=...
-    Beyn_init(N,g,dg,n,funA)
+    Beyn_init(N,g,dg,n,funA,M)
 %% The first run of Beyn cycle
 
     %% perform size estimation: BAD RESULTS 
@@ -9,13 +9,8 @@ function [k,N,BeynA0,BeynA1,w_Beyn,w_Beyn_err,v_Beyn]=...
 %     disp(sprintf('k_calc=%d',k_calc));
 %     l = floor(real(k_calc))+3;
 %     disp(sprintf('l=%d',l)); 
-
-    %% M 
-    % M = rand(n,l);      % dimension of initial arbitrary mat. n x l     
-    %--- for initial round, do not use M. use M=eye(n); 
-    M = eye(n); 
-    l=n; 
     
+    l = size(M,2); 
     %% --- compute Beyn matrices BeynA0, BeynA1
     Nlist=1:N;
     BeynA0=zeros(size(M)); 
