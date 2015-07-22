@@ -1,12 +1,6 @@
 TODO
 
-Start with N=4. increase N by a factor of 2. (for Nested quadrature scheme) 
-
-Single Beyn Run 
-1. compute N-pt integration w_N[k_guess] 
-     and integrate the size function to obtain k_safe 
-     (update k_guess and add safety value 2 or 10%, ex. k_safe = k_guess+2 )
-2. compute delta_w[k] by |w_N[k]-w_N2[k]|, where N2=N/2; 
+Currently only single poles are considered. 
 
 Decide next run: Beyn or Newton? Run Newton for w_BeynConverged[l] and obtain w_NewtonConverged[l]. 
 Abort Newton if convergence is slow. 

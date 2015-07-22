@@ -9,14 +9,16 @@ function [k,N,BeynA0,BeynA1,w_Beyn,w_Beyn_err,v_Beyn,M]=...
 % outputs: k, N, BeynA0, BeynA1: Beyn matrix data for N=N; 
 %          cdouble w_Beyn[k]: list of eigenvalues found 
 %          cdouble w_Beyn_err[k]: list of corresponding error
-    usermw=0; %don't remove w_Newt yet ; 
-
+    usermw=1; 
+    l = size(M,2); 
     N = N*2;
     %%--- define rmw(N): (z-w0)(z-w1).. at every quadrature pt.
     rmw=ones(N,1); %initialize 
-    if(usermw==1) for j=1:N
-        rmw(j) = ones(1,length(w_Newt))*(g(j) - w_Newt); %% (z-w0)(z-w1)..
-    end; end;
+    if(usermw==1) 
+        for j=1:N
+            rmw(j) = ones(1,length(w_Newt))*(g(j) - w_Newt); %% (z-w0)(z-w1)..
+        end 
+    end;    
     
     %% --- compute Beyn matrices BeynA0, BeynA1
     [BeynA0,BeynA1]=getBeyn(BeynA0_h,BeynA1_h,N,M,funA,rmw,g,dg);
