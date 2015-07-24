@@ -1,25 +1,24 @@
 function [k,N,BeynA0,BeynA1,w_Beyn,w_Beyn_err,v_Beyn,M]=...
-  Beyn(k,N,g,dg,n,funA,M,BeynA0_h,BeynA1_h,w_Newt,i_Newt)
+  Beyn(k,N,g,dg,n,funA,M,BeynA0_h,BeynA1_h,w_Newt)
 %% Repeating run of Beyn Cycle 
 % inputs:  (k, N, BeynA0, BeynA1, M, w_Beyn_h)_h: Beyn matrix, previous data
 %          k: #eigenvalues, N: #quadrature points
 %          M: (n x l) random matrix
 %          n, funA, fundA: problem definition funA=A(w)
-%          w_Newt, i_Newt: converged eigenvalues that need removal
+%          w_Newt: converged eigenvalues that need removal
 % outputs: k, N, BeynA0, BeynA1: Beyn matrix data for N=N; 
 %          cdouble w_Beyn[k]: list of eigenvalues found 
 %          cdouble w_Beyn_err[k]: list of corresponding error
-    usermw=1; 
+    usermw=0; 
     l = size(M,2); 
     N = N*2;
     %%--- define rmw(N): (z-w0)(z-w1).. at every quadrature pt.
     rmw=ones(N,1); %initialize 
-    if(usermw==1) 
+    if(usermw==1 & length(w_Newt)>0) 
         for j=1:N
             rmw(j) = ones(1,length(w_Newt))*(g(j) - w_Newt); %% (z-w0)(z-w1)..
         end 
     end;    
-    
     %% --- compute Beyn matrices BeynA0, BeynA1
     [BeynA0,BeynA1]=getBeyn(BeynA0_h,BeynA1_h,N,M,funA,rmw,g,dg);
     
@@ -43,7 +42,7 @@ function [k,N,BeynA0,BeynA1,w_Beyn,w_Beyn_err,v_Beyn,M]=...
     s0 = s(1:k);              % sigma is in decending order. 
     Sinv = diag(1./s0);       % inv(Sigma0) 
     B = conj(V0')*BeynA1_h*W0*Sinv; % linearized matrix
-    [v_Beyn_h, w_diag]=eig(B);    
+    [v_Beyn_h, w_diag]=eig(B); 
     w_Beyn_h = diag(w_diag);  % convert to single column
     clear V Sigma W s V0 W0 s0 Sinv B w_diag                 
     %--- compute error
