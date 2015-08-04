@@ -10,7 +10,7 @@ function [w_Newt,i_Newt,v_Newt] = Newton(w_Beyn,i_Beyn,v_Beyn,funA,fundA)
 % Choose method, choose nnmax 
 nnmax = 50; % maximum iteration for Newton Run
 
-methd = 1; 
+methd = 2; 
 %%% 1: simple Newton-Raphson
 %%% 2: Inverse iteration using eigenvector estimate
 %%% 3: Residual inverse iteration 
@@ -62,8 +62,8 @@ function [wj, j]= NewtInv(funA,fundA,w0,nn)
     wj = w0;
     for j = 1: nn
         wj1 = wj-1/trace(funA(wj)\fundA(wj)); 
-        if(abs(wj-wj1)<1e-15)
-        %if(wj==wj1)
+        %if(abs(wj-wj1)<1e-15)
+        if(wj==wj1)
             return;
         else
             wj = wj1;
