@@ -1,7 +1,8 @@
 % function main()
 % Yoonkyung Eunnie Lee 
-% last modified on 2015.07.23
+% last modified on 2015.08.03
 
+%% TEST ERROR CONVERGENCE BASED ON BEYN CUTOFF> 
 %   k: size of all Beyn output
 %  kk: Beyn_converged 
 %  jj: input to Newton (from kk)
@@ -9,43 +10,39 @@
 % kkk: final answer, stored 
 %       k,kk,jj,jjj: only stored for the last loop then discarded 
 
-% remove eigenvalues outside contour boundary ? 
-
 %% Housekeeping 
 clear all; close all; 
 warning off; 
-
 showplot=1; 
 savefig=0;
 saveeps=0;
 extension='.jpg';
-
 t0 = cputime;
 
 %% problem definition 
-Nmax = 1024; %%(2^9=512)
+Nmax = 512; %%(2^9=512)
 % p=3; n=50; 
 p=2;n=100;
 filebase = sprintf('poly%d_%d',p,n); 
 %[coeffs, funA, fundA]=polydef(filebase,p,n); 
 load(strcat(filebase,'_fun.mat')); 
-g0=0.0; rho=0.6;
+g0=0.0; rho=0.5;
 [g,dg]=circcont_nest(g0,rho,Nmax); 
 if(showplot==1) 
     [xLc,yLc] = getplotlimits(g); 
     cfig=polydefplot(filebase,g(1:2^7)); hold on; 
 end; 
 
-%% starting values 
+% starting values 
 N=2; 
 done=-1; %% indicator to stop simulation 
 w_Newt = []; 
 i_Newt = []; 
 
-%% limits
-w_err_cut = 1e-4; %% Beyn error cutoff 
+% limits
+w_err_cut = 1e-2; %% Beyn error cutoff 
 
-%% define random matrix M; 
+% define random matrix M or set it to eye(n); 
 %M=rand(n,n);
 M = eye(n); 
 
@@ -154,3 +151,14 @@ end
 
 e = cputime - t0 ; %% store time 
 disp(sprintf('elapsed time=%e',e));
+
+%% Save error file
+% cputime, absolute error, relative error between iterations
+filename = sprintf('error_%s.dat',filebase); 
+fid=fopen(filename,'w');
+formatSpec= '%8.6e    %8.6e    %8.6e \n';
+for(ii=1:length(data))
+    fprintf(fid,formatSpec,...
+        data(ii,1),data(ii,2),data(ii,3)   );
+end
+fclose(fid);
