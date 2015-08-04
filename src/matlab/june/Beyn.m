@@ -31,8 +31,9 @@ function [k,N,BeynA0,BeynA1,w_Beyn,w_Beyn_err,v_Beyn,M]=...
     s0 = s(1:k);                  % sigma is in decending order. 
     Sinv = diag(1./s0);           % inv(Sigma0) 
     B = conj(V0')*BeynA1*W0*Sinv; % linearized matrix
-    [v_Beyn, w_diag]=eig(B);    
-    w_Beyn = diag(w_diag);        % convert to single column
+    [s_Beyn, w_diag]=eig(B);    
+    w_Beyn = diag(w_diag);    % convert to single column
+    v_Beyn = V0*s_Beyn; 
     clear V Sigma W s V0 W0 s0 Sinv B w_diag 
     %--- compute w_Beyn_h 
     [V,Sigma,W] = svd(BeynA0_h); 
@@ -42,7 +43,7 @@ function [k,N,BeynA0,BeynA1,w_Beyn,w_Beyn_err,v_Beyn,M]=...
     s0 = s(1:k);              % sigma is in decending order. 
     Sinv = diag(1./s0);       % inv(Sigma0) 
     B = conj(V0')*BeynA1_h*W0*Sinv; % linearized matrix
-    [v_Beyn_h, w_diag]=eig(B); 
+    [s_Beyn_h, w_diag]=eig(B); 
     w_Beyn_h = diag(w_diag);  % convert to single column
     clear V Sigma W s V0 W0 s0 Sinv B w_diag                 
     %--- compute error
@@ -50,6 +51,10 @@ function [k,N,BeynA0,BeynA1,w_Beyn,w_Beyn_err,v_Beyn,M]=...
     for ii=1:k
         w_Beyn_err(ii)=min(abs(w_Beyn(ii)-w_Beyn_h));
     end
+    
+    %% output eigenvector should always have column length of A. 
+    
+    
  end%%function
     
 function [BeynA0,BeynA1]=getBeyn(BeynA0_h,BeynA1_h,N,M,funA,rmw,g,dg)
