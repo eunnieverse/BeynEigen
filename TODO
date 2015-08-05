@@ -1,10 +1,9 @@
 TODO
 
+Convergence plots vs. time 
+Step 6 for Beyn paper algorithm 1 should be implemented 
+
 Currently only single poles are considered. 
-
-Decide next run: Beyn or Newton? Run Newton for w_BeynConverged[l] and obtain w_NewtonConverged[l]. 
-Abort Newton if convergence is slow. 
-
 
 --------------------------------------------------------------------------------------------
 --------------------------------------------------------------------------------------------
