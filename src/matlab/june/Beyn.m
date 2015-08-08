@@ -28,11 +28,15 @@ function [k,N,BeynA0,BeynA1,w_Beyn,w_Beyn_err,v_Beyn,M]=...
     k= sum(s > 1e-15);        %--- rank computation 
     V0 = V(1:n,1:k);              % cut size of V0, W0, Sigma0 using k.
     W0 = W(1:l,1:k);
-    s0 = s(1:k);                  % sigma is in decending order. 
+    s0 = s(1:k);                  % sigma is in decending order.
     Sinv = diag(1./s0);           % inv(Sigma0) 
-    B = conj(V0')*BeynA1*W0*Sinv; % linearized matrix
+    B = conj(V0')*BeynA1*W0*Sinv; % linearized matrix, 
     [s_Beyn, w_diag]=eig(B);    
     w_Beyn = diag(w_diag);    % convert to single column
+    %% now discard eigenvalues outside the contour w_Beyn by step 6 in Beyn integral algorithm 1. 
+    for ii=1:length(w_Beyn)
+    end
+    
     v_Beyn = V0*s_Beyn; 
     clear V Sigma W s V0 W0 s0 Sinv B w_diag 
     %--- compute w_Beyn_h 
@@ -45,15 +49,13 @@ function [k,N,BeynA0,BeynA1,w_Beyn,w_Beyn_err,v_Beyn,M]=...
     B = conj(V0')*BeynA1_h*W0*Sinv; % linearized matrix
     [s_Beyn_h, w_diag]=eig(B); 
     w_Beyn_h = diag(w_diag);  % convert to single column
-    clear V Sigma W s V0 W0 s0 Sinv B w_diag                 
+    clear V Sigma W s V0 W0 s0 Sinv B w_diag           
     %--- compute error
     w_Beyn_err=zeros(k,1); 
     for ii=1:k
         w_Beyn_err(ii)=min(abs(w_Beyn(ii)-w_Beyn_h));
     end
-    
-    %% output eigenvector should always have column length of A. 
-    
+    %%% output eigenvector should always have column length of A. 
     
  end%%function
     

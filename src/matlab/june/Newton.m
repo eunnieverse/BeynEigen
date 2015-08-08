@@ -8,7 +8,7 @@ function [w_Newt,i_Newt,v_Newt] = Newton(w_Beyn,i_Beyn,v_Beyn,funA,fundA)
 % Yoonkyung Eunnie Lee 
 % Last Updated 2015.06.22
 % Choose method, choose nnmax 
-nnmax = 50; % maximum iteration for Newton Run
+nnmax = 20; % maximum iteration for Newton Run
 
 methd = 2; 
 %%% 1: simple Newton-Raphson

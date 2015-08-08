@@ -40,7 +40,7 @@ w_Newt = [];
 i_Newt = []; 
 
 % limits
-w_err_cut = 1e-2; %% Beyn error cutoff 
+w_err_cut = 1e-6; %% Beyn error cutoff 
 
 % define random matrix M or set it to eye(n); 
 %M=rand(n,n);
