@@ -9,7 +9,7 @@ function [k,N,BeynA0,BeynA1,w_Beyn,w_Beyn_err,v_Beyn,M]=...
 % outputs: k, N, BeynA0, BeynA1: Beyn matrix data for N=N; 
 %          cdouble w_Beyn[k]: list of eigenvalues found 
 %          cdouble w_Beyn_err[k]: list of corresponding error
-    usermw=0; 
+    usermw=1; 
     l = size(M,2); 
     N = N*2;
     %%--- define rmw(N): (z-w0)(z-w1).. at every quadrature pt.
@@ -33,9 +33,10 @@ function [k,N,BeynA0,BeynA1,w_Beyn,w_Beyn_err,v_Beyn,M]=...
     B = conj(V0')*BeynA1*W0*Sinv; % linearized matrix, 
     [s_Beyn, w_diag]=eig(B);    
     w_Beyn = diag(w_diag);    % convert to single column
+    
     %% now discard eigenvalues outside the contour w_Beyn by step 6 in Beyn integral algorithm 1. 
-    for ii=1:length(w_Beyn)
-    end
+    %%% for ii=1:length(w_Beyn)
+    %%% end
     
     v_Beyn = V0*s_Beyn; 
     clear V Sigma W s V0 W0 s0 Sinv B w_diag 

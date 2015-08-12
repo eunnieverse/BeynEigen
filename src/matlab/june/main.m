@@ -70,7 +70,10 @@ if(kk>0) %if anything converged in Beyn step
 end
 disp(sprintf('Initial Beyn, N=%d; total k=%d, converged kk=%d',N,k,kk));
 disp('i_Beyn='); disp(i_Beyn'); 
-if(showplot==1) scatter(real(w_Beyn),imag(w_Beyn),70,'b'); end %% currently gives best result 
+if(showplot==1) 
+    scatter(real(w_Beyn),imag(w_Beyn),70,'b'); hold on; 
+    scatter(real(g(1:N)),imag(g(1:N)),30,'.'); %% contour          
+end %% currently gives best result 
 
 %% Loop: starting from the first Newton Step 
 % initialize final list of converged eigenvalues w and eigenvectors v
@@ -137,6 +140,8 @@ while(done<0)
         w_Beyn=w_Beyn_new(i_Beyn);
         v_Beyn=v_Beyn_new(:,i_Beyn);
         if(showplot==1)
+            scatter(real(g(1:N)),imag(g(1:N)),30,'.'); %% contour
+            hold on; 
             scatter(real(w_Beyn),imag(w_Beyn),70,'b'); %from current Beyn Step;
             %legend ('Newton','previous Beyn','current Beyn');
         end

@@ -1,14 +1,19 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% ContourDistance.m 
 %%% Yoonkyung Eunnie Lee 
-%%% created 2015.06.23
+%%% created       2015.06.23
+%%% last modifled 2015.08.12
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%% randomly generated matrix A is created, saved, and plotted here 
+%%% a_rand: matrix A 
+%%% v_rand: eigenvectors (Av=wv) 
+%%% w_rand: eigenvalues, where w_rand(30) is tuned from 0.3 to 0.5 
 
 % %% create the file 
-% n_rand = 30; 
+% n_rand = 30;   % size of matrix A
 % w_rand = rand(n_rand,1)*1-rand(n_rand,1)*1+rand(n_rand,1)*i-rand(n_rand,1)*i;
-% a_rand = diag(w_rand); 
-% v_rand = eye(n_rand); 
+% a_rand = diag(w_rand); % matrix A 
+% v_rand = eye(n_rand);  % eigenvectors 
 % w_rand(30)=0.3; 
 % save('ContourDistance.mat','n_rand','w_rand','a_rand','v_rand'); 
 
@@ -19,7 +24,6 @@
 
 %% load file
 load('ContourDistance.mat'); 
-
 [g,dg]=circcont_nest(0,0.5,100); 
 % each column of w_matrix is the list of eigenvalues
 % the last eigenvalue moves towards 0.5 

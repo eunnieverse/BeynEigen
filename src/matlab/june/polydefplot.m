@@ -9,8 +9,9 @@ function cfig=polydefplot(filebase,gamma)
     yL = [-max(abs(E))*1.2 max(abs(E))*1.2]; %%yL for whole problem 
 
     cfig = figure();
-        scatter(real(gamma),imag(gamma),30,'.'); %% contour  
-        hold on; scatter(real(E),imag(E),100,'b*'); %%answer    
+        %scatter(real(gamma),imag(gamma),30,'.'); %% contour  
+        %hold on; 
+        scatter(real(E),imag(E),100,'b*'); %%answer    
         xlim(xLc); ylim(yLc); axis square; 
         line([0 0], xLc,'Color','k','Linewidth',1.5);
         line(yLc, [0 0],'Color','k','Linewidth',1.5);
