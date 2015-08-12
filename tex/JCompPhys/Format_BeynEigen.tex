@@ -16,10 +16,10 @@
 %\usepackage{float}
 %\usepackage{psfrag}
 %\usepackage{mathdots}
-%\usepackage{algorithm}
-%\usepackage{algorithmic}
-%\usepackage{listings}
-%\usepackage{array}
+\usepackage{algorithm}
+\usepackage{algorithmic}
+\usepackage{listings}
+\usepackage{array}
 \usepackage{url}
 %\usepackage{arydshln}
 %\usepackage{fancybox}
@@ -46,6 +46,9 @@
 %--------------------------------------------------
 % general commands
 %--------------------------------------------------
+\newcommand{\diff}{\mathrm{d}}
+\newcommand{\p}{\partial}
+
 \newcommand\Tr{\hbox{Tr }}
 \newcommand\sups[1]{^{\hbox{\scriptsize{#1}}}}
 \newcommand\supt[1]{^{\hbox{\tiny{#1}}}}
@@ -53,7 +56,6 @@
 \newcommand\subt[1]{_{\hbox{\tiny{#1}}}}
 \newcommand{\nn}{\nonumber \\}
 \newcommand{\vb}[1]{\mathbf{#1}}
-\newcommand{\numeq}[2]{\begin{equation} #2 \label{#1} \end{equation}}
 \newcommand{\pard}[2]{\frac{\partial #1}{\partial #2}}
 \newcommand{\pardn}[3]{\frac{\partial^{#1} #2}{\partial #3^{#1}}}
 \newcommand{\pf}[2]{\left(\frac{#1}{#2}\right)}
@@ -64,6 +66,5 @@
 \newcommand{\ds}[1]{\displaystyle{#1}}
 \newcommand{\primedsum}{\sideset{}{'}{\sum}}
 \newcommand{\pan}{\mathcal{P}}
-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

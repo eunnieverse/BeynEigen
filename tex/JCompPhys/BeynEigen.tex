@@ -1,37 +1,49 @@
 \documentclass[11pt,letterpaper]{article}
-\usepackage[utf8]{inputenc}
-\usepackage{fontenc,multicol,amsmath,amssymb,comment,graphicx}
-\usepackage[sort&compress,numbers]{natbib}
-\usepackage{subfig,siunitx,setspace,xcolor}
-\usepackage{algorithm, algorithmic}
+\input{Format_BeynEigen}
+\graphicspath{{../pictures/}}
 
-\addtolength{\hoffset}{-2cm}
-\addtolength{\textwidth}{4cm}
-\addtolength{\voffset}{-2.5cm}
-\addtolength{\textheight}{4cm}
-%----------commands----------------------------------%
-\newcommand{\diff}{\mathrm{d}}
-%------------------------------------------------------%
-%\pagestyle{myheadings}
-\pagestyle{plain}
-%------------------------------------------------------%
-\title{Method for Nonlinear Eigenproblems: Hybridizing Contour Integral and Newton's Method} 
+%------------------------------------------------------------
+%------------------------------------------------------------
+%- Special commands for this document -----------------------
+%------------------------------------------------------------
+%------------------------------------------------------------
+\newcommand{\del}{\boldsymbol\nabla}
+
+%------------------------------------------------------------
+%------------------------------------------------------------
+%- Document header  -----------------------------------------
+%------------------------------------------------------------
+%------------------------------------------------------------
+\title{Iterative Hybrid Method for Nonlinear Eigenvalue Problems} 
 \author{Yoonkyung Eunnie Lee}
-\date{Last updated: \today}
-%------------------------------------------------------%
-\begin{document}
-\maketitle
-\thispagestyle{empty}
+\date{Created: May 18, 2015 \\Last updated: \today}
 
+%------------------------------------------------------------
+%------------------------------------------------------------
+%- Start of actual document
+%------------------------------------------------------------
+%------------------------------------------------------------
+\begin{document}
+\pagestyle{myheadings}
+\markright{Yoonkyung Eunnie Lee: BeynEigen Project Update}
+
+\maketitle
+%\tableofcontents
+%\thispagestyle{empty} 
+%------------------------------------------------------------
+%------------------------------------------------------------
+%------------------------------------------------------------
 \begin{abstract}
 We propose a solution method for nonlinear eigenproblems (NEPs) by hybridizing two known solution methods for NEPs. The first method is based on Newton iteration, to search for the roots of the characteristic equation. The second method is referred to as Beyn's method in this work and is based on contour integration. (CI) Beyn's method is based on the observation that the singular values of an analytic function are equivalent to the poles of the inverse function. The eigenvalues are obtained by performing a CI of the inverse function on the complex plane.  
 While Newton's method has excellent quadratic convergence, it requires a good initial guess for each eigenvalue in order to find all of the solutions. On the other hand, Beyn's method requires no initial guess at the cost of having to compute the matrix inverse at every quadrature point, which is computationally expensive to achieve the same convergence. Our hybrid implementation combines the strengths of the two methods. We demonstrate this strength through a polynomial eigenproblem in this report, and provide guidelines for hybridization. We further aim to generalize the solution method towards eigenvalue problems in science and engineering. 
-
 \end{abstract}
 Nonlinear Eigenvalue Problems, (NEPs) Contour Integral (CI) Method, Newton Method, Nonlinear Inverse Iteration
+%------------------------------------------------------------
+%------------------------------------------------------------
 %--------------------------------------------------------------
 \section{Introduction} 
-%--------------------------------------------------------------
+%------------------------------------------------------------
+
 Eigenvalue problems (EPs) arise in diverse applications in science and technology, or any other field where a matrix or tensor represents the behavior of a system. \citep{guillaume_nonlinear_1999, betcke2013nlevp}. Solving an EP is equivalent to finding the condition at which the system is singular and therefore can produce a divergent output in response to a finite input. This is closely related to the concept of resonance for physical systems characterized with an eigenfrequency $\lambda$. Nonlinearity is extremely common when solving for eigen-frequencies, because a system that contains energy dissipation, gain, memory, or feedback is nonlinear in $\lambda$. Nonlinearity can also arise from the boundary conditions or from the use of special basis functions, even when the original system is linear. A nonlinear eigenproblem (NEP) is a generalization of an ordinary EP to equations that depend nonlinearly on the eigenvalue. Solutions for NEPs is a very active research field, filled with real-world applications. In this report, we focus on eigenproblems where nonlinearties arise only from the eigenvalue, not from the eigenvector.  
 
 \pagebreak
@@ -73,6 +85,8 @@ On the other hand, the eigenvectors of NEPs are not guaranteed to be linearly in
 In this report, we review existing solution methods for NEPs and suggest to combine CI-based Beyn's method and Newton's iteration to achieve faster convergence to all eigenvalues inside a given contour. We discuss the basic aspects of available solution methods for NEPs in section 2, and review the algorithms for the two methods of interest. In section 3 we suggest and demonstrate the hybrid method. In section 4 we perform error analysis of an example test case using MATLAB's {\tt polyeig} function. Lastly we summarize our results and conclude with a discussion on what future steps to take in order to make this approach useful for research. 
 
 \pagebreak
+%------------------------------------------------------------
+%------------------------------------------------------------
 %--------------------------------------------------------------
 \section{Solutions of NEPs by Newton's Method }
 %--------------------------------------------------------------
@@ -197,6 +211,8 @@ A crucial point in iterative projection methods for general NEPs is to  prohibit
 \subsubsection{Block Algorithms for NEPs}
 Another interesting approach is to create block versions of aforementioned algorithms, which prevents re-convergence to the same eigenvalue by computing all eigenvalues in a cluster simultaneously, which is similar to subspace iteration for linear eigenvalue problems. Kressner proposed a block Newton method for nonlinear inverse iteration in 2009 \citep{kressner2009block}. 
 %--------------------------------------------------------------
+%------------------------------------------------------------
+%------------------------------------------------------------
 \section{Solutions of NEPs by Contour Integral Methods}
 %--------------------------------------------------------------
 On the other hand, a new class of solution methods for NEPs based on CIs have been developed in the 2000's. It is based on the observation that if we assume all eigenvalues to be distinct, the zeros of an analytic matrix function $A(\lambda)$ are equal to the poles of the resolvent $A^{-1}(\lambda)$. 
@@ -273,7 +289,8 @@ Therefore, increasing $N$ for convergence is extremely expensive. This convergen
 %--------------------------------------------------------------
 We implement a solution method for NEPs that are nonlinear in the eigenvalue parameter, by hybridizing Beyn's CI method and Newton's nonlinear inverse iteration method. 
 
-
+%------------------------------------------------------------
+%------------------------------------------------------------
 %--------------------------------------------------------------
 \section{Strategy for Hybridization}
 %--------------------------------------------------------------
@@ -283,11 +300,10 @@ The biggest computational cost for Beyn's method is incurred by the increase of 
 %--------------------------------------------------------------
 \subsection{Numerical Example: A Polynomial Eigenproblem}
 %--------------------------------------------------------------
-\begin{figure}
-\label{fig:E}
+\begin{figure}\label{fig:E}
 \begin{center}
-\includegraphics[width=6.45cm]{../pictures/poly2_100_E.eps}
-\includegraphics[width=6.45cm]{../pictures/poly2_100_E_close.eps}
+\includegraphics[width=6.45cm]{poly2_100_E.eps}
+\includegraphics[width=6.45cm]{poly2_100_E_close.eps}
 \end{center}
 \caption{Spectrum of $A(\lambda)$. \textnormal{Left: spectrum including all eigenvalues of $A$. Right: A closer view around the contour $g_0+\rho e^{it}$ with $g_0=0$, $\rho=0.5$, $N=150$.}}
 \end{figure}
@@ -307,14 +323,14 @@ Figure \ref{fig:NewtonBenchmark} shows the quadratic convergence of Newton's met
 %--------------------------------------------------------------
 \begin{figure}\label{fig:NewtonBenchmark}
 \begin{center}
-\includegraphics[width=7cm]{../pictures/NewtonConvergence.eps}
+\includegraphics[width=7cm]{NewtonConvergence.eps}
 \end{center}
 \caption{Convergence of Newton method with respect to the number of iterations. \textnormal{Plots represent ten different iterations with random starting points. Linear slope of $log(-log(e_r))$ confirms the quadratic convergence of Newton's method.}}
 \end{figure}
 
 \begin{figure}\label{fig:NewtonIterate}
 \begin{center}
-\includegraphics[width=9cm]{../pictures/Newton_Iteration.eps}
+\includegraphics[width=9cm]{Newton_Iteration.eps}
 \end{center}
 \caption{Trajectory of Newton iteration on the complex plane. \textnormal{The rate of convergence is governed by the quality of the initial guess and the surrounding poles in the vicinity of the updated guess. The transition from stagnant region to quadratic convergence is clearly visible.}} 
 \end{figure}
@@ -339,7 +355,7 @@ where normalization is omitted for the known answers  $\hat{\lambda}_1 = -0.371 
 \begin{figure}\label{fig:Benchmark_Beyn}
 \begin{center}
 \includegraphics[width=6.45cm]{../pictures/Benchmark_Beyn.eps}
-\includegraphics[width=6.45cm]{../pictures/Benchmark_Beyn_contour.eps}
+\includegraphics[width=6.45cm]{Benchmark_Beyn_contour.eps}
 \end{center}
 \caption{Benchmarking Test for Beyn Algorithm. \textnormal{Left: normalized differences $e(\lambda_k)$ for $\lambda_1$ and $\lambda_2$. Right: plot of the exact eigenvalues from $100\times100$ quadratic eigenproblem using {\tt polyeig} (blue stars) and the result of Beyn's method (red circles) with $N=200$, $\hat{M}=rand(100,25)$}}
 \end{figure}
@@ -357,12 +373,12 @@ Figure \ref{fig:Benchmark_Beyn} confirms the exponential convergence of Beyn's m
 In the hybrid Beyn-Newton method, the results from Beyn's method are used as the initial guess for Newton's iteration until all eigenvalues converge to a desired level ($e_r<10^{-15}$). The quality of the initial guess is determined by the number of quadrature points on the Beyn contour. Six representative plots are shown in \ref{fig:BeynNewton}. 
 \begin{figure}\label{fig:BeynNewton}
 \begin{center}
-\includegraphics[width=6.45cm]{../pictures/NB10.eps}
-\includegraphics[width=6.45cm]{../pictures/NB30.eps}
-\includegraphics[width=6.45cm]{../pictures/NB50.eps}
-\includegraphics[width=6.45cm]{../pictures/NB70.eps}
-\includegraphics[width=6.45cm]{../pictures/NB80.eps}
-\includegraphics[width=6.45cm]{../pictures/NB150.eps}
+\includegraphics[width=6.45cm]{NB10.eps}
+\includegraphics[width=6.45cm]{NB30.eps}
+\includegraphics[width=6.45cm]{NB50.eps}
+\includegraphics[width=6.45cm]{NB70.eps}
+\includegraphics[width=6.45cm]{NB80.eps}
+\includegraphics[width=6.45cm]{NB150.eps}
 \end{center}
 \caption{Benchmarking Test for Hybrid Beyn-Newton Method. \textnormal{Accelrated Quadratic Convergence of Hybrid Beyn-Newton Method. Initial guess is given by the output of Beyn's contour integral using $N=10,30,50,70,80,150$. All eigenvalues converge before 5 iterations after the $N>80$.}}
 \end{figure}
@@ -371,16 +387,13 @@ As the number of sampling points increases, most eigenvalues converge before rea
 
 %\begin{figure}\label{fig:Convergence_Hybrid}
 %\begin{center}
-%\includegraphics[width=6.45cm]{../pictures/jtble.eps}
-%\includegraphics[width=6.45cm]{../pictures/Convergence_Newton.eps}
+%\includegraphics[width=6.45cm]{jtble.eps}
+%\includegraphics[width=6.45cm]{Convergence_Newton.eps}
 %\end{center}
 %\caption{Benchmarking Test for Hybrid Beyn-Newton Method. \textnormal{Left: normalized differences $e(\lambda_k)$ for $\lambda_1$ and $\lambda_2$. Right: plot of the exact eigenvalues from $60 \times 60$ quadratic eigenproblem using {\tt polyeig} (blue stars) and the result of Beyn's method (red circles) with $N=150$, $\hat{M}=rand(60,25)$}}
 %\end{figure}
 
 For this particular example, flop count for $N=30$ is smaller than $N=50$ or $N=70$ due to the large computation volume incurred by an increment in $N$. 
-
-
-
 
 A rigorous benchmarking method should automatically determine $N$ and switch to Newton iteration. Further analysis is required to test this for more complicated eigenvalue problems, such as when eigenvalues lie close to the contour or are highly clustered.
 %--------------------------------------------------------------
@@ -392,9 +405,9 @@ Care must be taken to ensure that the contour point does not coincide with an ei
 %--------------------------------------------------------------
 \begin{figure}\label{fig:overlap}
 \begin{center}
-\includegraphics[width=9cm]{../pictures/Benchmark_EigenvalueOnContour.eps}\\
-\includegraphics[width=6.45cm]{../pictures/Benchmark_EigenvalueOnContour_contour.eps}
-\includegraphics[width=6.45cm]{../pictures/Benchmark_EigenvalueOnContour_magn.eps}
+\includegraphics[width=9cm]{Benchmark_EigenvalueOnContour.eps}\\
+\includegraphics[width=6.45cm]{Benchmark_EigenvalueOnContour_contour.eps}
+\includegraphics[width=6.45cm]{Benchmark_EigenvalueOnContour_magn.eps}
 \end{center}
 \caption{Benchmarking Test for Contour overlapping with an Eigenvalue. \textnormal{Left: normalized differences $e(\lambda_k)$ for $\lambda_1$ and $\lambda_2$. Right: plot of the exact eigenvalues from $60 \times 60$ quadratic eigenproblem using {\tt polyeig} (blue stars) and the result of Beyn's method (red circles) with $N=150$, $\hat{M}=rand(60,25)$}}
 \end{figure}
@@ -402,15 +415,23 @@ Care must be taken to ensure that the contour point does not coincide with an ei
 \subsubsection{Independence of convergence from the sampling matrix $\hat{M}$}
 We also note that the dimension of the sampling matrix $\hat{M}$ did not produce a clear difference in the eigenvalue convergence. The most important factor for $M\in \mathbb{R}^{n\times l}$ is that it preserves the rank of the original problem, and is not accidentally orthogonal to an existing mode. The use of a random matrix is thus suited for this purpose.
 
+%------------------------------------------------------------
+%------------------------------------------------------------
 %--------------------------------------------------------------
 \section{Conclusion} 
+%------------------------------------------------------------
+
 We propose a hybrid solution method for NEPs by using a contour integral method with nonlinear inverse iteration based on Newton's method. We implement and verify that the contour integral method is capable of constructing a successful initial guess for Newton's method. For the test case of 19 eigenvalues inside a circular contour around the origin of the complex plane, the quadrature of N=30 already forced 14 eigenvalues to converge after 8 newton iterations.
 
 The hybridization scheme between the two methods depend on the dimensionality and the nonlinearity involved in each problem. We aim to test more test cases of practical importance using the proposed Beyn-Newton method in the near future. 
 
 %\clearpage
+%------------------------------------------------------------
+%------------------------------------------------------------
 %--------------------------------------------------------------
-%\bibliography{Proposalref_20150320}
-%\bibliographystyle{plain}
-%\bibliographystyle{unsrtnat}
+\section{References}
+%------------------------------------------------------------
+\bibliography{Proposalref_20150320}
+\bibliographystyle{plain}
+\bibliographystyle{unsrtnat}
 \end{document}
