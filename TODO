@@ -16,8 +16,8 @@ TODO
 
 
 5. Benchmarking: error plots 
-   1) x axis = #operations : 
-        each A\b (each column) is counted as an operation. 
+   1) x axis = #solves : 
+        each A\b (each column) is counted as an solve. 
         good for sparse matrices 
    2) x axis = #flops :
          (m^3 + m^2*b)
