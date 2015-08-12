@@ -8,8 +8,8 @@ function [wj, j]= NewtInv(funA,fundA,w0,nn)
     wj = w0;
     for j = 1: nn
         wj1 = wj-1/trace(funA(wj)\fundA(wj)); 
-        %if(abs(wj-wj1)<1e-15)
-        if(wj==wj1)
+        if(abs(wj-wj1)<1e-15)
+        %if(wj==wj1)
             return;
         else
             wj = wj1;

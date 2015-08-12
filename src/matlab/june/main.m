@@ -152,13 +152,13 @@ end
 e = cputime - t0 ; %% store time 
 disp(sprintf('elapsed time=%e',e));
 
-%% Save error file
-% cputime, absolute error, relative error between iterations
-filename = sprintf('error_%s.dat',filebase); 
-fid=fopen(filename,'w');
-formatSpec= '%8.6e    %8.6e    %8.6e \n';
-for(ii=1:length(data))
-    fprintf(fid,formatSpec,...
-        data(ii,1),data(ii,2),data(ii,3)   );
-end
-fclose(fid);
+% %% Save error file
+% % cputime, absolute error, relative error between iterations
+% filename = sprintf('error_%s.dat',filebase); 
+% fid=fopen(filename,'w');
+% formatSpec= '%8.6e    %8.6e    %8.6e \n';
+% for(ii=1:length(data))
+%     fprintf(fid,formatSpec,...
+%         data(ii,1),data(ii,2),data(ii,3)   );
+% end
+% fclose(fid);
