@@ -14,8 +14,8 @@
 clear all; close all; 
 warning off; 
 showplot=1; 
-savefig=0;
-saveeps=0;
+fignum=1; 
+saveeps=1; savejpg=0; 
 extension='.jpg';
 t0 = cputime;
 
@@ -26,26 +26,31 @@ p=2;n=100;
 filebase = sprintf('poly%d_%d',p,n); 
 %[coeffs, funA, fundA]=polydef(filebase,p,n); 
 load(strcat(filebase,'_fun.mat')); 
+
+%% 
+w_err_cut = 1e-7; %% Beyn error cutoff 
+savefigbase=strcat(filebase,'_cut1e-7');
+
+%%
 g0=0.0; rho=0.5;
 [g,dg]=circcont_nest(g0,rho,Nmax); 
-if(showplot==1) 
-    [xLc,yLc] = getplotlimits(g); 
-    cfig=polydefplot(filebase,g(1:2^7)); hold on; 
-end; 
 
 % starting values 
-N=2; 
+N=8; 
 done=-1; %% indicator to stop simulation 
 w_Newt = []; 
 i_Newt = []; 
-
-% limits
-w_err_cut = 1e-6; %% Beyn error cutoff 
 
 % define random matrix M or set it to eye(n); 
 %M=rand(n,n);
 M = eye(n); 
 
+if(showplot==1) 
+    cfig=polydefplot(filebase,g,N);
+    elsavefig(cfig, savefigbase, fignum, savejpg, saveeps); 
+    Mov(fignum)=getframe(gcf); 
+    fignum=fignum+1; 
+end; 
 %% First Beyn Step (initialize)
 kk=0; % length(w_Beyn); % kk for zeroth step 
 while(kk==0) %run Beyn_init until one eigenvalue converges
@@ -62,6 +67,16 @@ while(kk==0) %run Beyn_init until one eigenvalue converges
             i_Beyn(kk)=j; 
         end; 
     end
+    w_Beyn=w_Beyn_new;
+    v_Beyn=v_Beyn_new;
+    if(showplot==1) 
+        cfig=polydefplot(filebase,g,N);
+        scatterBeyn(w_Beyn,N);                       
+        elsavefig(cfig, savefigbase, fignum, savejpg, saveeps); 
+        Mov(fignum)=getframe(gcf); 
+        fignum=fignum+1; 
+    end %% currently gives best result 
+
 end
 if(kk>0) %if anything converged in Beyn step
     i_Beyn=i_Beyn(1:kk); % among all calculated by Beyn, list of the converged
@@ -70,9 +85,12 @@ if(kk>0) %if anything converged in Beyn step
 end
 disp(sprintf('Initial Beyn, N=%d; total k=%d, converged kk=%d',N,k,kk));
 disp('i_Beyn='); disp(i_Beyn'); 
-if(showplot==1) 
-    scatter(real(w_Beyn),imag(w_Beyn),70,'b'); hold on; 
-    scatter(real(g(1:N)),imag(g(1:N)),30,'.'); %% contour          
+if(showplot==1)
+    cfig=polydefplot(filebase,g,N);
+    scatterBeyn(w_Beyn,N);title(sprintf('N=%d, Beyn Converged',N)); 
+    elsavefig(cfig, savefigbase, fignum, savejpg, saveeps);
+    Mov(fignum)=getframe(gcf); 
+    fignum=fignum+1; 
 end %% currently gives best result 
 
 %% Loop: starting from the first Newton Step 
@@ -87,12 +105,6 @@ while(done<0)
     % Display Newton Step 
     disp(sprintf('fully converged eigenvalues=%d',length(w_Newt)));
     disp('i_Newt='); disp(i_Newt');
-%     if(showplot==1)
-%         scatter(real(w_Newt),imag(w_Newt),50,'g');
-%         savefigname=strcat(filebase,'_result'); 
-%         if(savefig==1); saveas(cfig, strcat(savefigname,extension)); end;
-%         if(saveeps==1); saveas(cfig,strcat(savefigname,'.eps'),'epsc');end;
-%     end;
 
     % Check overlap and append new answers to w,v
     for jjj=1:length(w_Newt)
@@ -127,11 +139,9 @@ while(done<0)
     end
     
     if(showplot==1) 
-        cfig=polydefplot(filebase,g(1:2^7)); hold on; 
-        scatter(real(w),imag(w),40,'g.'); 
-        scatter(real(w_Beyn),imag(w_Beyn),40,'r'); % from previous Beyn Step; 
-        title(sprintf('loop=%d',loopnum)); 
-        %legend ('Newton','previous Beyn');
+        cfig=polydefplot(filebase,g,N);
+        scatterNewt(w);                       
+        scatterBeynRed(w_Beyn); % from previous Beyn Step; 
     end
    
     if(kk>0) %if anything converged in Beyn step
@@ -140,10 +150,10 @@ while(done<0)
         w_Beyn=w_Beyn_new(i_Beyn);
         v_Beyn=v_Beyn_new(:,i_Beyn);
         if(showplot==1)
-            scatter(real(g(1:N)),imag(g(1:N)),30,'.'); %% contour
-            hold on; 
-            scatter(real(w_Beyn),imag(w_Beyn),70,'b'); %from current Beyn Step;
-            %legend ('Newton','previous Beyn','current Beyn');
+            scatterBeyn(w_Beyn,N); 
+            elsavefig(cfig, savefigbase, fignum, savejpg, saveeps); 
+            Mov(fignum)=getframe(gcf); 
+            fignum=fignum+1; 
         end
     end   
     disp(sprintf('Beyn, N=%d; total k=%d, converged kk=%d',N,k,kk));
@@ -153,6 +163,7 @@ while(done<0)
         done=1;
     end
 end
+%movie2avi(Mov,strcat(savefigbase,'.avi'),'fps',1);
 
 e = cputime - t0 ; %% store time 
 disp(sprintf('elapsed time=%e',e));
