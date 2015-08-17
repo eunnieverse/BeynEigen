@@ -1,0 +1,43 @@
+polydef, contourdistance
+
+	polydef.m
+	getA.m
+
+contour
+	circcont_nest.m
+	cint.m
+
+
+
+Beyn 
+	Beyn_init.m
+	Beyn.m
+	getBeyn.m
+
+	updateBeyn.m (outdated)
+
+
+Newton 
+	NewtInv.m
+	NewtInv2.m
+	Newton.m 
+
+	NewtonEigen.m (outdated) 
+
+
+plot utils
+
+	getplotlimits.m
+	polydefplot.m
+	scatterBeyn.m
+	scatterBeynRed.m
+	scatterNewton.m 
+
+counter utils 
+  	count_solves.m
+	count_flops.m
+
+TESTING FILES
+	NewtonBenchmark.m
+	NewtonBenchmarkRandomStart.m 
+	ContourDistance.m 
