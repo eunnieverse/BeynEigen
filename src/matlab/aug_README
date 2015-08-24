@@ -1,29 +1,17 @@
-Classes 
+Class
 	BeynData
-	EigenPairs
-	NestedContour
 	NEP
 	NEPcounter
+	EigenPairs
 
-Beyn 
+Functions
 	Beyn.m
-
-Newton 
-	NewtInv.m
-	NewtInv2.m
 	Newton.m 
 
-	NewtonEigen.m (outdated) 
-
-
 plot utils
-	plotstep.m 
-	plotBeyn.m
-	plotBeynPrev.m
-	plotNewt.m 
-	plotNewtAll.m
+        plotxylim.m
+        plotsave.m
 
 TESTING FILES
-	NewtonBenchmark.m
-	NewtonBenchmarkRandomStart.m 
+	BeynBenchmark.m
 	ContourDistance.m
