@@ -1,7 +1,7 @@
 %---------------------------------------------------------------------
 % BeynEigen project main file
 % Yoonkyung Eunnie Lee 
-% last modified on 2015.08.18
+% last modified on 2015.08.27
 %---------------------------------------------------------------------
 % used classes in this program: 
 % NEP
@@ -30,9 +30,9 @@ S_f  = EigenPairs(4);       % eigenpair list final
 %---------------------------------------------------------------------
 newdef = 0;                 % run polydef if newdef==1
 
-n = 100;                    % define problem size 
+n = 10;                    % define problem size 
 p = 2;                      % polynomial order 
-fA = NEP(1);                % initialize NEP, 1: polynomial, 2: linear 
+fA = NEP(2);                % initialize NEP, 1: polynomial, 2: linear 
 
 if(newdef==1);
     switch fA.type
@@ -51,27 +51,28 @@ end;
 %- Construct BeynData 
 %---------------------------------------------------------------------
 Nmax = 512;                % maximum size of contour 
-g0 = 0.0; rho = 0.5; 
+g0 = 0.0; rho = 1; 
 [gmax,dgmax,s]=NestedContour(g0,rho,Nmax);
 
-Mmax = rand(n);             % square random matrix M0 defined
-
+% Mmax = rand(n);             % square random matrix M0 defined
+Mmax = eye(n); 
 emax = 1e-3;                % Beyn cutoff error tolerance
 
 %- Initial values for sampling 
-l  = 16;                     % initial number of columns for M
+l  = n-1;                     % initial number of columns for M
 N  = 16;                     % quadrature N initialization 
 
 BD = BeynData(N,Mmax,l,gmax,dgmax,emax);
 
-count= NEPcounter(1000);    % created counter 
+c = NEPcounter(1000);    % created counter 
 
 NewtonType = 1; % simple Newton-Raphson       
-while BD.N<=256
+while BD.N<=Nmax/2
     [BD, S_bc] = Beyn(fA, BD, S_nc, S_bc); 
-    log(count);
+    if(length(S_bc.err)>1)
+        c=add(c,l*1.5,max(S_bc.err)); % maximum error among converged eigenvalues 
+    end
     S_nc  = Newton(fA, NewtonType, S_bc, S_nc); 
-    log(count);
     S_f = update(S_f, S_f.k + S_nc.k,[S_f.E; S_nc.E], [S_f.V S_nc.V]); 
     
     plot(fA); plot(BD); plot(S_bc); plot(S_nc);  
@@ -114,7 +115,7 @@ end
 %     disp(sprintf('Beyn, N=%d; total k=%d, converged kk=%d',N,k,kk));
 %     disp('i_Beyn='); disp(i_Beyn'); 
  
-log(count); 
+log(c); 
 if(showplot); plot(count,1); end; % 1 for time, 2 for numSolves, 3 for gflops
 if(savemov && fignum>4);
     movie2avi(Mov,strcat(savefigbase,'.avi'),'fps',1); 

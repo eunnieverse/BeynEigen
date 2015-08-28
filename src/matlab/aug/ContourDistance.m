@@ -1,52 +1,62 @@
-%--------------------------------------------------------------------------
-%%%%% ContourDistance.m 
-%%%%% Yoonkyung Eunnie Lee 
-%%%%% created       2015.06.23
-%%%%% last modifled 2015.08.12
-%--------------------------------------------------------------------------
-%%% randomly generated matrix A is created, saved, and plotted here 
-%%% a_rand: matrix A 
-%%% v_rand: eigenvectors (Av=wv) 
-%%% w_rand: eigenvalues, where w_rand(30) is tuned from 0.3 to 0.5 
-%--------------------------------------------------------------------------
+%---------------------------------------------------------------------
+%- ContourDistance.m 
+%-  plot error as a function of d/s 
+%- Yoonkyung Eunnie Lee 
+%- last modifled 2015.08.27
+%---------------------------------------------------------------------
+clear all; close all; warning off;
 
-%--------------------------------------------------------------------------
-% %% create the file 
-% n_rand = 30;   % size of matrix A
-% w_rand = rand(n_rand,1)*1-rand(n_rand,1)*1+rand(n_rand,1)*i-rand(n_rand,1)*i;
-% a_rand = diag(w_rand); % matrix A 
-% v_rand = eye(n_rand);  % eigenvectors 
-% w_rand(30)=0.3; 
-% save('ContourDistance.mat','n_rand','w_rand','a_rand','v_rand'); 
-%--------------------------------------------------------------------------
+showplot=1; 
+savefigbase = 'contourdistance'; 
+saveeps=0; savejpg=0;       % choose conditions
+savemov=0;                  % save movie 
+fignum=1;                   % initialize figure number
+%---------------------------------------------------------------------
+% Construct an NEP (nonlinear eigenvalue problem) 
+% funA, fundA, filename, E, X
+%---------------------------------------------------------------------
+newdef = 0;                 % run polydef if newdef
+n = 10;                    % define problem size 
+fA = NEP(2);                % initialize NEP, 1: polynomial, 2: linear 
+if(newdef==1);
+    fA=NEP_linear(fA,n); save(fA);
+else
+    fA=NEP_load(fA,sprintf(fA.format2,n)); 
+end 
+%---------------------------------------------------------------------
+%- Construct BeynData 
+%---------------------------------------------------------------------
+Nmax = 512;                % maximum size of contour 
+g0 = 0.0; rho = 0.5; 
+[gmax,dgmax,s]=NestedContour(g0,rho,Nmax);
 
-% %% check 
-% [V,E]=eig(a_rand); 
-% E=diag(E); 
-% scatter(real(E),imag(E)); 
+Mmax = rand(n);             % square random matrix M0 defined
+emax = 1e-3;                % Beyn cutoff error tolerance
 
-%--------------------------------------------------------------------------
-%% load file
-load('ContourDistance.mat'); 
-[g,dg]=circcont_nest(0,0.5,100); 
-% each column of w_matrix is the list of eigenvalues
-% the last eigenvalue moves towards 0.5 
-w_matrix = [w_rand w_rand w_rand w_rand w_rand]; 
-w_matrix(30,:)=0.3:0.05:0.5; 
-save('ContourDistance.mat','n_rand','w_rand','a_rand','v_rand','w_matrix'); 
-%--------------------------------------------------------------------------
+%- Initial values for sampling 
+l  = n-1;                     % initial number of columns for M
+N  = 16;                     % quadrature N initialization 
 
-%--------------------------------------------------------------------------
-%% plot 
-savefig = 1;
-saveeps = 1; 
-extension = '.png';
-cfig =figure(); 
-scatter(real(w_rand),imag(w_rand),'kx');  hold on; 
-scatter(real(g),imag(g),'b.'); axis equal;
-plot(real(w_matrix(30,:)),imag(w_matrix(30,:)),'r.-'); 
-h=legend('all eigvals','contour','moved eigval','location','northeastoutside');
-savefigname='ContourDistance';
-    if(savefig==1); saveas(cfig, strcat(savefigname,extension)); end; 
-    if(saveeps==1); saveas(cfig,strcat(savefigname,'.eps'),'epsc'); end; 
+E = fA.S.E; 
+BD = BeynData(N,Mmax,l,gmax,dgmax,emax);
+
+w_0 = E(1); 
+d0 =  abs(min(w_0-BD.g)); 
+nd = 50; 
+dList = linspace(d0,0,nd); 
+
+for(ii=1:nd)
+    E(1) = w_0 + ii*min((BD.g-w_0))/nd;
+    d = abs(min(E(1)-BD.g));     
+    fA.S.E=E; 
+end
+x = d/s; 
+
+y = max(S_bc.err); 
+
+cfig = scatter(); 
+
+plotsave(cfig, savefigbase, fignum, savejpg, saveeps)
+
+% plot 
 %--------------------------------------------------------------------------

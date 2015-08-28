@@ -35,6 +35,11 @@ classdef NEPcounter
         
         %- Utilities
         function obj=add(obj,nsolves,error)
+            if(obj.nn >= obj.nmax)
+                obj.ErrList = [obj.ErrList; zeros(obj.nmax,4)]; 
+                disp(sprintf('NEPcounter nmax=%d exceeded, changed to %d',obj.nmax, 2 * obj.nmax )); 
+                obj.nmax = 2 * obj.nmax; 
+            end
             obj.nn = obj.nn + 1; 
             obj.nsolves=nsolves; 
             obj.ErrList(obj.nn,:) = ...

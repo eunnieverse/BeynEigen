@@ -23,7 +23,7 @@ function [BD, S_bc] = Beyn(fA, BD, S_nc, S_bc)
     end
     
     %- Remove eigenvalues from previously converged Newton step S_nc
-    usermw=1; 
+    usermw=0; 
     rmw=ones(Nj,1);             % initialize     
     if(usermw==1 && S_nc.k>0)
         for jj=1:Nj
@@ -36,7 +36,7 @@ function [BD, S_bc] = Beyn(fA, BD, S_nc, S_bc)
     lj1 = l0;                               % temporary lj1 inside loop 
     while( fixl == 0 )
         if(lj1 >= BD.n); break;     end; 
-        if(lj >= BD.n); lj = BD.n;  end;
+        if(lj  > BD.n); lj = BD.n;  end;
         BD.l = lj;                          % update BD.l 
         %- S_b from half run (1:Nj/2) 
         if(lj == lj1 && BD.NA==Nj1)         % if l=fixed, N=doubled
@@ -50,15 +50,13 @@ function [BD, S_bc] = Beyn(fA, BD, S_nc, S_bc)
         %- S_bc from full run (1:Nj) 
         BD = fullBeynA(BD, fA.funA, rmw);      % update BD
         [S_bc, fixl] = BeynSVD(BD, S_bc);   % get S_bc from current run 
-
             lj1 = lj;                           % update lj1
             lj = 2 * lj1;                       % double lj 
-    
         %-----------------------------------------------------------------
         %- Check error 
         S_bc = error(S_bc,S_b);     % update error
         S_bc = converged(S_bc,find(S_bc.err<BD.emax)); % discard unconverged
-        
+
         if(S_bc.k > 0 )
             disp (sprintf('S_bc.k = %d', S_bc.k));
             break; 
@@ -68,7 +66,8 @@ function [BD, S_bc] = Beyn(fA, BD, S_nc, S_bc)
     %---------------------------------------------------------------------
     % discard eigenvalues outside the contour w_Beyn.
 
-    disp(sprintf('Beyn Run, N:%d->%d, l:%d->%d.',Nj1,BD.N,l0,BD.l));    
+    disp(sprintf('Beyn Run, N:%d->%d, l:%d->%d, k:%d',Nj1,BD.N,l0,BD.l,S_bc.k));    
+    
 end
 
 function [S_b,fixl] = BeynSVD(BD, S_b)
