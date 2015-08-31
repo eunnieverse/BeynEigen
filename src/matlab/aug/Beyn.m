@@ -15,8 +15,9 @@ function [BD, S_bc] = Beyn(fA, BD, S_nc, S_bc)
     %- Update BD.E_nc (Newton-converged list) and decide initial lj
     if(S_nc.k==0)
         lj = l0;               % maintain l if rmw did not increase
+        disp('   Beyn, S_nc.k==0, letting lj = l0'); 
     else
-        disp('update BD.k ');
+        disp('   S_nc.k~=0, updating BD.k ');
         BD.k = S_nc.k + BD.k;   % update BD.k, BD.E_nc to include S_nc
         BD.E_nc = [BD.E_nc; S_nc.E]; 
         lj = l0 - BD.k + 3 ;   % decrease lj according to size of BD.k 
@@ -26,6 +27,7 @@ function [BD, S_bc] = Beyn(fA, BD, S_nc, S_bc)
     usermw=0; 
     rmw=ones(Nj,1);             % initialize     
     if(usermw==1 && S_nc.k>0)
+        disp('   usermw=1, remove eigenvalues');
         for jj=1:Nj
             rmw(jj) = ones(1,BD.k)*(BD.g(jj)-BD.E_nc); %% (z-w0)(z-w1)..
         end 
@@ -33,15 +35,25 @@ function [BD, S_bc] = Beyn(fA, BD, S_nc, S_bc)
     %---------------------------------------------------------------------
     %- Run with lj and figure out if lj is sufficient. 
     fixl = 0 ;                              % initialize fixl 
-    lj1 = l0;                               % temporary lj1 inside loop 
+    lj1 = l0 ;                              % temporary lj1 inside loop 
+    
     while( fixl == 0 )
-        if(lj1 >= BD.n); break;     end; 
-        if(lj  > BD.n); lj = BD.n;  end;
+        if(lj1 > BD.n) 
+            disp(sprintf('   break since lj1(%d) > BD.n(%d)',lj1,BD.n));
+            break;     
+        end
+        if(lj  > BD.n)
+            disp(sprintf('   set lj(previously %d) = BD.n(%d)',lj,BD.n));
+            lj = BD.n;
+        end;
+        
         BD.l = lj;                          % update BD.l 
-        %- S_b from half run (1:Nj/2) 
+        
+        %- Set S_b from half run (1:Nj/2) 
         if(lj == lj1 && BD.NA==Nj1)         % if l=fixed, N=doubled
+            disp('   re-used BeynA sum'); 
             S_b = copy(S_b, S_bc);          % reuse previous BeynA as half
-            disp('re-used BeynA sum'); 
+            
         else                                % if first run or l changed
             BD = halfBeynA(BD, fA.funA, rmw);  % create new half 
             [S_b, fixl] = BeynSVD(BD, S_b); 
@@ -49,6 +61,7 @@ function [BD, S_bc] = Beyn(fA, BD, S_nc, S_bc)
         
         %- S_bc from full run (1:Nj) 
         BD = fullBeynA(BD, fA.funA, rmw);      % update BD
+        
         [S_bc, fixl] = BeynSVD(BD, S_bc);   % get S_bc from current run 
             lj1 = lj;                           % update lj1
             lj = 2 * lj1;                       % double lj 
@@ -84,7 +97,7 @@ function [S_b,fixl] = BeynSVD(BD, S_b)
     W0 = W(1:BD.l, 1:k);                %                   W0(l,k)
 
     Sinv = diag(1./diag(S0));           % Sinv = inv(S0) 
-    B = conj(V0') * BeynA1 * W0 * Sinv; % linearized matrix 
+    B = (V0') * BeynA1 * W0 * Sinv; % linearized matrix 
     [vtemp, wtemp]=eig(B);
     E = diag(wtemp);                    % convert to single column    
     V = V0*vtemp;                       % size of V should be (n,k); 

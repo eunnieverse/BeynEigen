@@ -48,7 +48,7 @@ function S_nc = Newton(fA, type, S_bc, S_nc)
                         break;      
                     end
                     nj  = nj+1; 
-                    eHj = conj(vj')/norm(vj,2)^2; % normalization vector
+                    eHj = (vj')/norm(vj,2)^2; % normalization vector
                     wj1 = wj;
                     xj1 = vj; 
                     ej1 = ej;
