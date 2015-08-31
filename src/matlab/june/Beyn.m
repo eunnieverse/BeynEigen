@@ -30,7 +30,7 @@ function [k,N,BeynA0,BeynA1,w_Beyn,w_Beyn_err,v_Beyn,M]=...
     W0 = W(1:l,1:k);
     s0 = s(1:k);                  % sigma is in decending order.
     Sinv = diag(1./s0);           % inv(Sigma0) 
-    B = conj(V0')*BeynA1*W0*Sinv; % linearized matrix, 
+    B = (V0')*BeynA1*W0*Sinv; % linearized matrix, 
     [s_Beyn, w_diag]=eig(B);    
     w_Beyn = diag(w_diag);    % convert to single column
     
@@ -47,7 +47,7 @@ function [k,N,BeynA0,BeynA1,w_Beyn,w_Beyn_err,v_Beyn,M]=...
     W0 = W(1:l,1:k);
     s0 = s(1:k);              % sigma is in decending order. 
     Sinv = diag(1./s0);       % inv(Sigma0) 
-    B = conj(V0')*BeynA1_h*W0*Sinv; % linearized matrix
+    B = (V0')*BeynA1_h*W0*Sinv; % linearized matrix
     [s_Beyn_h, w_diag]=eig(B); 
     w_Beyn_h = diag(w_diag);  % convert to single column
     clear V Sigma W s V0 W0 s0 Sinv B w_diag           
