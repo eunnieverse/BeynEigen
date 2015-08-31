@@ -59,7 +59,7 @@ Mmax = eye(n);
 emax = 1e-3;                % Beyn cutoff error tolerance
 
 %- Initial values for sampling 
-l  = n-1;                     % initial number of columns for M
+l  = 5;                     % initial number of columns for M
 N  = 16;                     % quadrature N initialization 
 
 BD = BeynData(N,Mmax,l,gmax,dgmax,emax);

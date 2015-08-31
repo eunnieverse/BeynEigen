@@ -15,7 +15,7 @@ function [BD, S_bc] = Beyn(fA, BD, S_nc, S_bc)
     %- Update BD.E_nc (Newton-converged list) and decide initial lj
     if(S_nc.k==0)
         lj = l0;               % maintain l if rmw did not increase
-        disp('   Beyn, S_nc.k==0, letting lj = l0'); 
+        disp(sprintf('   Beyn, S_nc.k==0, letting lj = l0 = %d',l0)); 
     else
         disp('   S_nc.k~=0, updating BD.k ');
         BD.k = S_nc.k + BD.k;   % update BD.k, BD.E_nc to include S_nc
@@ -37,11 +37,11 @@ function [BD, S_bc] = Beyn(fA, BD, S_nc, S_bc)
     fixl = 0 ;                              % initialize fixl 
     lj1 = l0 ;                              % temporary lj1 inside loop 
     
-    while( fixl == 0 )
-        if(lj1 > BD.n) 
-            disp(sprintf('   break since lj1(%d) > BD.n(%d)',lj1,BD.n));
-            break;     
-        end
+ %   while( fixl == 0 )
+%         if(lj1 >= BD.n) 
+%             disp(sprintf('   break since lj1(%d) >= BD.n(%d)',lj1,BD.n));
+%             break;     
+%         end
         if(lj  > BD.n)
             disp(sprintf('   set lj(previously %d) = BD.n(%d)',lj,BD.n));
             lj = BD.n;
@@ -67,14 +67,14 @@ function [BD, S_bc] = Beyn(fA, BD, S_nc, S_bc)
             lj = 2 * lj1;                       % double lj 
         %-----------------------------------------------------------------
         %- Check error 
-        S_bc = error(S_bc,S_b);     % update error
-        S_bc = converged(S_bc,find(S_bc.err<BD.emax)); % discard unconverged
-
-        if(S_bc.k > 0 )
-            disp (sprintf('S_bc.k = %d', S_bc.k));
-            break; 
+        if(S_bc.k >0 && S_b.k>0)
+          S_bc = error(S_bc,S_b);     % update error
+          S_bc = converged(S_bc,find(S_bc.err<BD.emax)); % discard unconverged
+        
+          disp (sprintf('   S_bc.k = %d', S_bc.k));
+            %break; 
         end
-    end
+%    end
     
     %---------------------------------------------------------------------
     % discard eigenvalues outside the contour w_Beyn.
