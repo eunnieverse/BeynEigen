@@ -1,10 +1,10 @@
 classdef NEPcounter
     properties (Constant)
         header=sprintf('%12s    %12s    %12s    %12s \n','time elapsed','nsolves','gflops','error')
-        formatSpec='%12.5e    %12.5e    %12.5e    %12.5e \n'
-        nmax=500                %int            length of ErrList
+        formatSpec='%12.5e    %12.5e    %12.5e    %12.5e \n'        
     end
     properties
+        nmax                    %int            length of ErrList
         nn                      %int            current index 
         nsolves                 %int            # of solves
         t0                      %double         initial cputime 
@@ -17,7 +17,8 @@ classdef NEPcounter
     end
     methods
         %- Constructor
-        function obj = NEPcounter()            
+        function obj = NEPcounter()
+            obj.nmax = 500;     %initialize
             obj.nn=0; 
             obj.t0 = cputime; 
             obj.ErrList=zeros(obj.nmax,4); 
