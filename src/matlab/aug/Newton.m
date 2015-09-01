@@ -1,73 +1,73 @@
-function S_nc = Newton(fA, type, S_bc, S_nc)
-    %- run Newton-based Iteration on S_bc 
-    %- convergence criterion:
-    %       stop when error increases or decreases slowly: if(ej>0.9*ej1) 
-    %  type 1: simple Newton-Raphson
+function S_nc = Newton(funA, fundA, type, S_bc, S_nc, breakN)
+    %-------------------------------------------------------------
+    %- run Newton-based Iteration on every entry of S_bc
+    %  type 1: Simple Newton-Raphson
     %       2: Inverse iteration using eigenvector estimate
-    %       3: Residual inverse iteration 
+    %       3: Residual inverse iteration
+    %-------------------------------------------------------------    
+    jmax = 20;                          % maximum iteration     
     %-------------------------------------------------------------
-    %- wj, wj1: current & previous eigval
-    %- ej, ej1: current & previous error ej=abs(wj-wj1)        
+    %- Start For Loop for every eigenpair in S_bc 
+    %-------------------------------------------------------------    
+    for kk=1:S_bc.k
+        switch type
+            case 1; [wj,ej,jj]    = Newton1(funA,fundA,breakN,jmax,S_bc.E(kk));
+            case 2; [wj,vj,ej,jj] = Newton2(funA,fundA,breakN,jmax,S_bc.E(kk),S_bc.V(:,kk));
+            case 3; error('Nonlinear Residual Inverse Iteration not implemented');
+            case 4; error('Block Newton not implemented');
+        end % switch        
+        if(jj<jmax)                     % record if converged before jmax          
+            S_nc.k  =  S_nc.k+1;        % update k = k+1
+            S_nc.E(S_nc.k,1) = wj;      % record eigval
+            S_nc.err(S_nc.k,1) = ej;    % record step size
+            S_nc.nj(S_nc.k,1) = jj;     % record number of iterations
+            if(type==2 || type==3 || type==4)
+                S_nc.V(:,S_nc.k) = vj;  % record eigvec
+            end 
+        else
+            S_nc=zero(S_nc);
+        end
+    end % for kk
+end % function 
+
+function [wj,ej,jj]= Newton1(funA,fundA,breakN,jmax,w0)
     %-------------------------------------------------------------
-    nnmax = 20; % maximum iteration       
-    
-    switch type 
-        case 1 %  type 1: simple Newton-Raphson    
-            for jj=1:S_bc.k         % for every eigenpair
-                wj = S_bc.E(jj);    % set initial values for wj ej ej1 nj
-                ej = 0;          
-                ej1= Inf;            
-                nj = 0;            
-                while(ej<ej1) 
-                    if(nj==nnmax)
-                        break;      
-                    end
-                    nj  = nj+1; 
-                    wj1 = wj;
-                    ej1 = ej;
-                    wj  = wj1 - 1/trace(fA.funA(wj1)\fA.fundA(wj1)); 
-                    ej  = abs(wj - wj1);
-                end % while
-                if(nj<nnmax)                    % if converged
-                    S_nc.k = S_nc.k+1;          % k = k+1
-                    S_nc.E = [S_nc.E; wj];      % record E(k)
-                    S_nc.err = [S_nc.err; ej];  % record err(k)                    
-                  % S_nc.V(:,S_nc.k) = S_bc.V(:,jj); 
-                end
-            end %for jj 
-        %-----------------------------------------------------------------           
-        case 2 %       2: Nonlinear Inverse Iteration, use eigenvector info
-            for jj=1:S_bc.k         % for every eigenpair
-                wj = S_bc.E(jj);    % set initial values               
-                vj = S_bc.V(:,jj);  
-                ej = 0;          
-                ej1= Inf;            
-                nj = 0;                            
-                while(ej<ej1) 
-                    if(nj==nnmax)
-                        break;      
-                    end
-                    nj  = nj+1; 
-                    eHj = (vj')/norm(vj,2)^2; % normalization vector
-                    wj1 = wj;
-                    xj1 = vj; 
-                    ej1 = ej;
-                    uj  = fA.funA(wj1)\fA.fundA(wj1)*xj1; %unnormalized v
-                    wj  = wj1 - 1./eHj*uj;
-                    vj  = uj.* (1./eHj*uj); 
-                    ej  = abs(wj-wj1); 
-                end % while                 
-                if(nj<nnmax)                    % if converged
-                    S_nc.k = S_nc.k+1;          % k = k+1
-                    S_nc.E = [S_nc.E; wj];      % record E(k)
-                    S_nc.V = [S_nc.V vj]; 
-                    S_nc.err = [S_nc.err; ej];  % record err(k)                    
-                end                
-            end %for jj 
-        %-----------------------------------------------------------------            
-        case 3 %       3: Nonlinear Residual Inverse Iteration 
-            % Not used 
-        case 4 %       4: Block Newton Algorithm 
-            % Not used 
-    end % switch 
+    %- Simple Newton-Raphson Iteration
+    %- wj1: previous eigenvalue, ej1: previous Newton step size 
+    %- wj : current eigenvalue,  ej : current Newton step size 
+    %-------------------------------------------------------------
+    wj = w0;                            % initialize
+    ej = 0;                             % initialize small
+    for jj=1:jmax        
+        wj1 = wj; 
+        ej1 = ej; 
+        step = 1/trace(funA(wj1)\fundA(wj1));                    
+        if(isnan(step)||isinf(step));   break; end
+        wj  = wj1 - step;         
+        ej  = abs(wj - wj1);
+        if(breakN(ej,ej1));        break; end
+    end
+end % function 
+
+function [wj,vj,ej,jj]=Newton2(funA,fundA,breakN,jmax,w0,v0)
+    %-------------------------------------------------------------
+    %- Nonlinear Inverse Iteration 
+    %- wj1: previous eigenvalue, ej1: previous Newton step size 
+    %- wj : current eigenvalue,  ej : current Newton step size 
+    %-------------------------------------------------------------
+    wj = w0;                            % initialize
+    vj = v0;                            % initialize
+    ej = 0;                             % initialize small
+    for jj=1:jmax        
+        eHj = (vj')/norm(vj,2)^2;       % normalization vector
+        wj1 = wj; 
+        xj1 = vj; 
+        ej1 = ej; 
+        uj  = funA(wj1)\fundA(wj1)*xj1; % unnormalized v
+        step = 1./(eHj*uj); 
+        if(isnan(step)||isinf(step));   break; end
+        wj  = wj1 - step;
+        ej  = abs(wj - wj1);
+        if(breakN(ej,ej1));        break; end
+    end
 end % function 
