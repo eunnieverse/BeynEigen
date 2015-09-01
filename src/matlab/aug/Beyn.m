@@ -1,11 +1,11 @@
 function [BD, S_bc] = Beyn(fA, BD, S_nc, S_bc)
 %---------------------------------------------------------------------
-%- Beyn contour integration, each Beyn run doubles N and changes l
+%- Beyn contour integration, each Beyn run doubles N and modifies l
 %---------------------------------------------------------------------
 % Variables:    BD.N            # of contour pts. 
 %               BD.l            # of columns in random mat M = M0(1:n,1:l)
 %---------------------------------------------------------------------    
-    l0  = BD.l;                % record beginning l value      
+    l0   = BD.l;                % record beginning l value      
     Nj1  = BD.N;                % record beginning N value 
     Nj   = 2 * Nj1;             % double N    
     BD.N = Nj;                  % update BD.N 
@@ -37,11 +37,11 @@ function [BD, S_bc] = Beyn(fA, BD, S_nc, S_bc)
     fixl = 0 ;                              % initialize fixl 
     lj1 = l0 ;                              % temporary lj1 inside loop 
     
- %   while( fixl == 0 )
-%         if(lj1 >= BD.n) 
-%             disp(sprintf('   break since lj1(%d) >= BD.n(%d)',lj1,BD.n));
-%             break;     
-%         end
+    while( fixl == 0 )
+        if(lj1 >= BD.n) 
+            disp(sprintf('   break since lj1(%d) >= BD.n(%d)',lj1,BD.n));
+            break;     
+        end
         if(lj  > BD.n)
             disp(sprintf('   set lj(previously %d) = BD.n(%d)',lj,BD.n));
             lj = BD.n;
@@ -50,10 +50,9 @@ function [BD, S_bc] = Beyn(fA, BD, S_nc, S_bc)
         BD.l = lj;                          % update BD.l 
         
         %- Set S_b from half run (1:Nj/2) 
-        if(lj == lj1 && BD.NA==Nj1)         % if l=fixed, N=doubled
+        if(lj == lj1 && BD.NA==Nj1 && S_bc.k>0) %condition to reuse previous run
             disp('   re-used BeynA sum'); 
-            S_b = copy(S_b, S_bc);          % reuse previous BeynA as half
-            
+            S_b = copy(S_b, S_bc);            
         else                                % if first run or l changed
             BD = halfBeynA(BD, fA.funA, rmw);  % create new half 
             [S_b, fixl] = BeynSVD(BD, S_b); 
@@ -67,20 +66,14 @@ function [BD, S_bc] = Beyn(fA, BD, S_nc, S_bc)
             lj = 2 * lj1;                       % double lj 
         %-----------------------------------------------------------------
         %- Check error 
-        if(S_bc.k >0 && S_b.k>0)
+        if(S_bc.k>0)
           S_bc = error(S_bc,S_b);     % update error
-          S_bc = converged(S_bc,find(S_bc.err<BD.emax)); % discard unconverged
-        
+          S_bc = sample(S_bc,find(S_bc.err<BD.emax)); % discard unconverged        
           disp (sprintf('   S_bc.k = %d', S_bc.k));
             %break; 
         end
-%    end
-    
-    %---------------------------------------------------------------------
-    % discard eigenvalues outside the contour w_Beyn.
-
+    end        
     disp(sprintf('Beyn Run, N:%d->%d, l:%d->%d, k:%d',Nj1,BD.N,l0,BD.l,S_bc.k));    
-    
 end
 
 function [S_b,fixl] = BeynSVD(BD, S_b)
