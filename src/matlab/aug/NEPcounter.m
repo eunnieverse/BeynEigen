@@ -1,15 +1,15 @@
 classdef NEPcounter
     properties (Constant)
-        formatSpec='%6.8e    %6.8e    %6.8e    %6.8e \n'
+        header=sprintf('%12s    %12s    %12s    %12s \n','time elapsed','nsolves','gflops','error')
+        formatSpec='%12.5e    %12.5e    %12.5e    %12.5e \n'
+        nmax=500                %int            length of ErrList
     end
     properties
-        nmax                    %int            length of ErrList
         nn                      %int            current index 
         nsolves                 %int            # of solves
         t0                      %double         initial cputime 
-        ErrList                 %double(nn,4)   [elapsed, nsolves, gflops, error]
-        
-        fid       
+        ErrList                 %double(nn,4)   [elapsed, nsolves, gflops, error]        
+        fid
     end
     properties (Dependent)
         gflops                  %double         # of giga flops
@@ -17,11 +17,10 @@ classdef NEPcounter
     end
     methods
         %- Constructor
-        function obj = NEPcounter(nmax)
-            obj.nmax=nmax; 
+        function obj = NEPcounter()            
             obj.nn=0; 
             obj.t0 = cputime; 
-            obj.ErrList=zeros(nmax,4); 
+            obj.ErrList=zeros(obj.nmax,4); 
         end
         
         %- Get functions 
@@ -48,6 +47,7 @@ classdef NEPcounter
 
         function log(obj)    
             obj.fid = fopen('counter.log','w');
+            fprintf(obj.fid,obj.header);
             for ii = 1:obj.nn
                 fprintf(obj.fid, obj.formatSpec, obj.ErrList(ii,:));
             end
