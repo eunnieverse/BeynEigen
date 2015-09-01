@@ -1,4 +1,4 @@
-function [gmax,dgmax,s]=NestedContour(g0,rho,Nmax) 
+function [gmax,dgmax,s,isinside]=NestedContour(g0,rho,Nmax) 
     %- create a circular nested contour centered at g0, with radius rho 
     theta    = zeros(Nmax,1);
     theta(1) = 2*pi;  % qq = 0; 
@@ -11,4 +11,9 @@ function [gmax,dgmax,s]=NestedContour(g0,rho,Nmax)
     dgmax =      rho*(-sin(theta) + 1i*cos(theta));
     s = @(N) 2*pi*rho/N;        %- arc distance between adjacent pts
                                 %  as a function of N   
+                                
+    isinside = @subfun; 
+    function y=subfun(w)
+        y=find(abs(w-g0)<rho);
+    end
 end
