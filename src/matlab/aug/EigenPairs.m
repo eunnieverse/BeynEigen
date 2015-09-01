@@ -1,7 +1,7 @@
 classdef EigenPairs
     %- Eigenpair Data Set Class
     properties (SetAccess=private)
-        type        % int,              eigenpair type 
+        type        % int,              eigenpair type, used for plotting
                     %                   1: Beyn,   unconverged 
                     %                   2: Beyn,   converged  
                     %                   3: Newton, converged  
@@ -13,7 +13,8 @@ classdef EigenPairs
         E           % cdouble(k,1)      eigenvalue list 
         V           % cdouble(n,k)      eigenvector list
     
-        err         % double(k,1)       error list 
+        err         % double(k,1)       N/2 error for Beyn, step size for Newton
+        nj          % Newton iteration number, if applicable
     end
     methods
         %- Constructor
@@ -25,20 +26,34 @@ classdef EigenPairs
             end
         end
         
-        %- Utilities
+        %- Utilities: zero, update, converged, error, copy
+        function obj=zero(obj)
+            %- re-initialize an eigenpair 
+            obj.k=0; obj.E=[]; obj.V=[]; obj.err=[]; obj.nj=[];            
+        end
         function obj=update(obj,k,E,V)
-            obj.k = 0; 
-            obj.E = []; 
-            obj.V = []; 
+            %- set an eigenpair with given k, E, V
             obj.k=k;
-            obj.E=E;
-            obj.V=V;
-        end        
-        function obj=converged(obj,listconv)
-            obj.k=length(listconv);
-            obj.E=obj.E(listconv);
-            obj.V=obj.V(:,listconv);
-            obj.err=obj.err(listconv); 
+            if(size(E,1)==k && size(E,2)==1 && size(V,2)==k) 
+                obj.E=E;
+                obj.V=V;
+            else
+                error('size of E and V does not match size of k'); 
+            end
+        end
+        function obj=sample(obj,klist)
+            %- Sample original list using index list klist
+            obj.k=length(klist);
+            obj.E=obj.E(klist);
+            if(size(obj.V,2)>=obj.k)
+                obj.V=obj.V(:,klist);
+            end
+            if(size(obj.err,1)>=obj.k)
+                obj.err=obj.err(klist); 
+            end
+            if(size(obj.nj,1)>=obj.k)
+                obj.nj=obj.nj(klist); 
+            end
         end 
         function obj=error(obj,S)
             if(isa(S,'EigenPairs'))
@@ -65,29 +80,16 @@ classdef EigenPairs
         function plot(obj)
             hold on; 
             switch obj.type
-                case 1
-                    scatter(real(obj.E),imag(obj.E),40,'r');
-                case 2
-                    scatter(real(obj.E),imag(obj.E),70,'b');
-                case 3
-                    scatter(real(obj.E),imag(obj.E),50,'g*');
-                case 4
-                    scatter(real(obj.E),imag(obj.E),50,'g.');
+                case 1; scatter(real(obj.E),imag(obj.E),40,'r');
+                case 2; scatter(real(obj.E),imag(obj.E),70,'b');
+                case 3; scatter(real(obj.E),imag(obj.E),50,'g*');
+                case 4; scatter(real(obj.E),imag(obj.E),50,'g.');
+                case 5; scatter(real(obj.E),imag(obj.E),40,'b*'); 
             end
         end
     end % end methods 
   
-%     methods (Static) 
-%         function err= geterr(S1,S2)
-%             if(isa(S1,'EigenPairs') && isa(S2,'EigenPairs'))
-%                 %- get error between obj.E and S.E 
-%                 err=zeros(S1.k,1); 
-%                 for jj=1:S1.k
-%                     err(jj) = min(abs(S1.E(jj)-S2.E(jj))); 
-%                 end
-%             else
-%                 error('both arguments should be EigenPairs'); 
-%             end                
-%         end
-%     end % end methods 
+    methods (Static) 
+    
+    end % end methods 
 end % end class 
