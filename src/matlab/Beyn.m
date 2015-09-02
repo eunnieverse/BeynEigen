@@ -25,7 +25,7 @@ function [BD, S_bc] = Beyn(fA, BD, S_f, S_bc)
     else                        % if krj changed         
         lj = lj1 - dkrmw;
     end
-    disp(sprintf('   Beyn,   usermw=%d, removable krmw=%d',usermw,krmwj));    
+    % disp(sprintf('   Beyn,   usermw=%d, removable krmw=%d',usermw,krmwj));    
     %---------------------------------------------------------------------
     %- update BD 
     BD.N = Nj;  
@@ -39,7 +39,7 @@ function [BD, S_bc] = Beyn(fA, BD, S_f, S_bc)
         disp('   Beyn,   re-used BeynA for S_b'); 
         S_b = copy(S_b, S_bc); 
     else 
-        disp('   Beyn,   new BeynA for S_b by running halfBeynA'); 
+        % disp('   Beyn,   new BeynA for S_b by running halfBeynA'); 
         BD  = halfBeynA(BD, fA.funA, usermw);  % create new halfBeynA
         S_b = BeynSVD(BD, S_b);
 %     fixl = 1;                  % choose whether to fix l or run while loop      
@@ -83,7 +83,7 @@ function BD= halfBeynA(BD,funA,usermw)
     g  = BD.g; 
     dg = BD.dg; 
     M  = BD.M; 
-    disp(sprintf('   Beyn,   halfBeyNA, N=%5d, NA=%5d',BD.N, NA));
+    % disp(sprintf('   Beyn,   halfBeyNA, N=%5d, NA=%5d',BD.N, NA));
     BeynA0sum = zeros(size(M)); 
     BeynA1sum = zeros(size(M)); 
     
@@ -112,7 +112,7 @@ function BD= halfBeynA2(BD,funA,usermw)
     g  = BD.g; 
     dg = BD.dg; 
     M  = BD.M; 
-    disp(sprintf('   Beyn,   halfBeyNA2, N=%5d, NA=%5d',BD.N, NA));
+    % disp(sprintf('   Beyn,   halfBeyNA2, N=%5d, NA=%5d',BD.N, NA));
     BeynA0sum = BD.BeynA0sum;
     BeynA1sum = BD.BeynA1sum;
     
@@ -135,7 +135,7 @@ function BD= totalBeynA(BD,funA,usermw)
     g  = BD.g; 
     dg = BD.dg; 
     M  = BD.M; 
-    disp(sprintf('   Beyn,   totalBeyNA, N=%5d, NA=%5d',BD.N, NA));
+    % disp(sprintf('   Beyn,   totalBeyNA, N=%5d, NA=%5d',BD.N, NA));
     BeynA0sum = zeros(size(M)); 
     BeynA1sum = zeros(size(M)); 
     
@@ -174,9 +174,9 @@ function S_b = BeynSVD(BD, S_b)
     B = (V0') * BeynA1 * W0 * Sinv; % linearized matrix 
     [vtemp, wtemp]=eig(B);
     E = diag(wtemp);                    % convert to single column   
-    disp(sprintf('   Beyn,   BeynSVD, l=%5d, NA=%5d, k=%5d',l,NA,k));
-    disp(sprintf('   Beyn,   BeynSVD, length(E)=%5d,k=%5d',length(E),k));    
     V = V0*vtemp;                       % size of V should be (n,k); 
+    % disp(sprintf('   Beyn,   BeynSVD, l=%5d, NA=%5d, k=%5d',l,NA,k));
+    % disp(sprintf('   Beyn,   BeynSVD, length(E)=%5d,k=%5d',length(E),k));    
     % cfig=figure();plot(BD);  hold on; 
     % scatter(real(E),imag(E),40,'m*'); 
     % title('BeynSVD check');

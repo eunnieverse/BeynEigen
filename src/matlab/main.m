@@ -6,7 +6,7 @@
 % included classes: NEP, NEPcounter, BeynData, EigenPairs
 %---------------------------------------------------------------------
 clear all; close all;
-showplot=1; saveeps=0; savejpg=0;       % choose conditions
+showplot=1; saveeps=0; savejpg=1;       % choose conditions
 savemov=1;  fignum=1;                   % save movie 
 %---------------------------------------------------------------------
 %- Initialize Eigenpairs 
@@ -20,7 +20,7 @@ S_f  = EigenPairs(4);       % eigenpair list final
 %- Construct NEP (nonlinear eigenvalue problem)
 % funA, fundA, filename, E, X
 %---------------------------------------------------------------------
-newdef = 1;                 % run polydef if newdef==1
+newdef = 0;                 % run polydef if newdef==1
 
 n = 100;                    % define problem size 
 p = 2;                      % polynomial order 
@@ -38,19 +38,20 @@ else
         case 2; fA=NEP_load(fA,sprintf(fA.format2,n)); 
     end
 end;
+savefigbase=sprintf('%s_randM_removeout',fA.filebase);
 %---------------------------------------------------------------------
 %- Construct BeynData 
 %---------------------------------------------------------------------
-Nmax = 2^7;                  % maximum size of contour 
+Nmax = 2^9;                  % maximum size of contour 2^7=128. 2^9=512.
 g0 = 0.0; rho =0.5; 
 [gmax,dgmax,s,dc,isinside]=NestedContour(g0,rho,Nmax);
-% Mmax = rand(n);            % square random matrix M0 defined
- Mmax = eye(n); 
+ Mmax = rand(n);            % square random matrix M0 defined
+% Mmax = eye(n); 
 emax = 1e-2;                 % Beyn cutoff error tolerance
 
 %- Initial values for sampling 
 l  = n;                      % initial number of columns for M
-N  = 16;                     % quadrature N initialization 
+N  = 4;                     % quadrature N initialization 
 BD = BeynData(N,Mmax,l,gmax,dgmax,emax);
 c = NEPcounter();    % created counter 
 %---------------------------------------------------------------------
@@ -69,7 +70,7 @@ while(BD.N<=Nmax/2)
     [BD, S_bc] = Beyn(fA, BD, S_nc, S_bc);     
     if(S_bc.k>0)                                % if Beyn has output 
         c = add(c,l*1.5,max(S_bc.err));         % Record Operation Count         
-        %S_bc=sample(S_bc,find(isinside(S_bc.E))); % discard outside gamma
+        S_bc=sample(S_bc,find(isinside(S_bc.E))); % discard outside gamma
         %-----------------------------------------------------------------
         %- Newton Step  
         %-----------------------------------------------------------------
@@ -88,7 +89,11 @@ while(BD.N<=Nmax/2)
             end
          end
     end 
-    plot(fA); plot(BD); plot(S_bc); plot(S_nc); title(sprintf('N=%5d',BD.N)); 
+    cfig=plot(fA); plot(BD); plot(S_bc); plot(S_nc); title(sprintf(['N=' ...
+    '%5d'],BD.N)); 
+    plotsave(cfig, savefigbase, fignum, savejpg, saveeps);
+    Mov(fignum)=getframe(cfig); 
+    fignum = fignum +1; 
 end
 
 %---------------------------------------------------------------------
