@@ -17,7 +17,7 @@ classdef BeynData
         emax                        % double,       Beyn cutoff (max error)
         %- previously converged Newton eigenvalues 
         k                           % number of rmw eigenvalues 
-        E_nc                        % rmw eigenvalues 
+        E                           % rmw eigenvalues 
         %- 
         NA                          % int,          N of BeynA0 and BeynA1
         BeynA0sum                   % BeynA0 summed at NA points on g
@@ -69,12 +69,12 @@ classdef BeynData
             obj.NA=obj.N/2; % sync NA = N/2 (half data pts) 
             obj.BeynA0sum = zeros(obj.n,obj.l); 
             obj.BeynA1sum = zeros(obj.n,obj.l); 
-            for ii=1:obj.NA; 
-                invA = funA(obj.g(ii))\obj.M;
+            for jj=1:obj.NA; 
+                invA = funA(obj.g(jj))\obj.M;
                 obj.BeynA0sum = obj.BeynA0sum  + ...
-                    invA * rmw(ii) * obj.dg(ii);
+                    invA * rmw(jj) * obj.dg(jj);
                 obj.BeynA1sum = obj.BeynA1sum  + ...
-                    invA * rmw(ii) * obj.dg(ii) * obj.g(ii) ;
+                    invA * rmw(jj) * obj.dg(jj) * obj.g(jj) ;
             end 
         end
         
@@ -85,12 +85,12 @@ classdef BeynData
                 error('run halfBeynA before proceeding');
             end
             obj.NA = 2 * obj.NA ; % double obj.NA 
-            for ii=(obj.NA/2+1):obj.NA
-                invA = funA(obj.g(ii))\obj.M;
+            for jj=(obj.NA/2+1):obj.NA
+                invA = funA(obj.g(jj))\obj.M;
                 obj.BeynA0sum = obj.BeynA0sum + ...
-                    invA * rmw(ii) * obj.dg(ii); 
+                    invA * rmw(jj) * obj.dg(jj); 
                 obj.BeynA1sum = obj.BeynA1sum + ...
-                    invA * rmw(ii) * obj.dg(ii) * obj.g(ii); 
+                    invA * rmw(jj) * obj.dg(jj) * obj.g(jj); 
             end
         end%%function         
 

@@ -1,4 +1,4 @@
-function [BD, S_bc] = Beyn(fA, BD, S_nc, S_bc)
+function [BD, S_bc] = Beyn(fA, BD, S_f, S_bc)
 %---------------------------------------------------------------------
 %- Beyn contour integration, each Beyn run doubles N and modifies l
 %---------------------------------------------------------------------
@@ -12,26 +12,36 @@ function [BD, S_bc] = Beyn(fA, BD, S_nc, S_bc)
     
     S_b  = EigenPairs(1);       % initialize previous list of Beyn eigvals
     %---------------------------------------------------------------------
-    %- Update BD.E_nc (Newton-converged list) and decide initial lj
-    if(S_nc.k==0)
-        lj = l0;               % maintain l if rmw did not increase
-        disp(sprintf('   Beyn, S_nc.k==0, letting lj = l0 = %d',l0)); 
+    %- Update BD.E (Newton-converged list) and decide initial lj
+    if(BD.k==S_f.k)
+        lj = l0;                % maintain l if rmw did not increase
+        disp(sprintf('   Beyn,   S_nc.k==0, letting lj = l0 = %d',l0)); 
     else
-        disp('   S_nc.k~=0, updating BD.k ');
-        BD.k = S_nc.k + BD.k;   % update BD.k, BD.E_nc to include S_nc
-        BD.E_nc = [BD.E_nc; S_nc.E]; 
-        lj = l0 - BD.k + 3 ;   % decrease lj according to size of BD.k 
+       disp('   Beyn,   New eigenvalues converged from Newton step added to rmw');
+        dk = S_f.k-BD.k;        % change in k from last step, + if increased
+        BD.k = S_f.k; 
+        BD.E = S_f.E;         
+        lj = l0 - dk;           % decrease lj by dk 
     end
     
-    %- Remove eigenvalues from previously converged Newton step S_nc
+    %- Remove eigenvalues from previously converged Newton step 
     usermw=0; 
-    rmw=ones(Nj,1);             % initialize     
-    if(usermw==1 && S_nc.k>0)
-        disp('   usermw=1, remove eigenvalues');
-        for jj=1:Nj
-            rmw(jj) = ones(1,BD.k)*(BD.g(jj)-BD.E_nc); %% (z-w0)(z-w1)..
-        end 
+    
+    if(usermw==1 && BD.k>0) 
+        disp('   Beyn,   usermw=1, remove eigenvalues');
+        %- Define function rmw(z) 
+        rmw = @subfun; 
+        function y = subfun(z,k,E)
+            %- return y = (z-E(1))*(z-E(2))*...*(z-E(k)) 
+            y=1; 
+            for kk=1:k
+                y=y*(z-E(k)); 
+            end
+        end % function definition    
+        
     end
+        
+    rmwjj = rmw(BD.g(jj),BD.k,BD.E); 
     %---------------------------------------------------------------------
     %- Run with lj and figure out if lj is sufficient. 
     fixl = 0 ;                              % initialize fixl 
@@ -39,11 +49,11 @@ function [BD, S_bc] = Beyn(fA, BD, S_nc, S_bc)
     
     while( fixl == 0 )
         if(lj1 >= BD.n) 
-            disp(sprintf('   break since lj1(%d) >= BD.n(%d)',lj1,BD.n));
+           disp(sprintf('   Beyn,   break since lj1(%d) >= BD.n(%d)',lj1,BD.n));
             break;     
         end
         if(lj  > BD.n)
-            disp(sprintf('   set lj(previously %d) = BD.n(%d)',lj,BD.n));
+           disp(sprintf('   Beyn,   set lj(previously %d) = BD.n(%d)',lj,BD.n));
             lj = BD.n;
         end;
         
@@ -51,7 +61,7 @@ function [BD, S_bc] = Beyn(fA, BD, S_nc, S_bc)
         
         %- Set S_b from half run (1:Nj/2) 
         if(lj == lj1 && BD.NA==Nj1 && S_bc.k>0) %condition to reuse previous run
-            disp('   re-used BeynA sum'); 
+           disp('   Beyn,   re-used BeynA sum'); 
             S_b = copy(S_b, S_bc);            
         else                                % if first run or l changed
             BD = halfBeynA(BD, fA.funA, rmw);  % create new half 

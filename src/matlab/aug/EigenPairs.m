@@ -13,7 +13,7 @@ classdef EigenPairs
         E           % cdouble(k,1)      eigenvalue list 
         V           % cdouble(n,k)      eigenvector list
     
-        err         % double(k,1)       N/2 error for Beyn, step size for Newton
+        err         % double(k,1)       Beyn: N/2 error, Newton: step size
         nj          % Newton iteration number, if applicable
     end
     methods
@@ -59,8 +59,8 @@ classdef EigenPairs
             if(isa(S,'EigenPairs'))
                 %- get error between obj.E and S.E 
                 obj.err=zeros(obj.k,1); 
-                for jj=1:obj.k
-                    obj.err(jj) = min(abs(obj.E(jj)-S.E)); 
+                for kk=1:obj.k
+                    obj.err(kk) = min(abs(obj.E(kk)-S.E)); 
                 end
             else
                 error('both arguments should be EigenPairs'); 
@@ -90,6 +90,5 @@ classdef EigenPairs
     end % end methods 
   
     methods (Static) 
-    
     end % end methods 
 end % end class 
