@@ -1,12 +1,12 @@
 function [gmax,dgmax,s,dc,isinside]=NestedContour(g0,rho,Nmax) 
     %- create a circular nested contour centered at g0, with radius rho 
-    theta    = zeros(Nmax,1);
-    theta(1) = 2*pi;  % qq = 0; 
-    for qq = 1:log2(Nmax)
-        for jj = 1:2^(qq-1) 
-            theta(2^(qq-1)+jj) = 2*pi*jj/2^(qq-1);
+    theta=[]; 
+    for qq=0:log2(Nmax) 
+        for rr = 1:2:2^qq
+            theta = [theta 2*pi*rr/(2^qq)]; 
         end
-    end
+    end   
+    
     gmax  = g0 + rho*( cos(theta) + 1i*sin(theta));
     dgmax =      rho*(-sin(theta) + 1i*cos(theta));
     %----------------------------------------------------------------
