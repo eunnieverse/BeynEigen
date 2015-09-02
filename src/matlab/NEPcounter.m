@@ -41,7 +41,7 @@ classdef NEPcounter
                 obj.nmax = 2 * obj.nmax; 
             end
             obj.nn = obj.nn + 1; 
-            obj.nsolves=nsolves; 
+            obj.nsolves=obj.nsolves + nsolves; 
             obj.ErrList(obj.nn,:) = ...
                 [obj.elapsed, obj.nsolves, obj.gflops, error]; 
         end
