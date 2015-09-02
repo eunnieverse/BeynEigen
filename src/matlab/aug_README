@@ -7,11 +7,11 @@ Class
 Functions
 	Beyn.m
 	Newton.m 
+        NestedContour.m         
 
 plot utils
         plotxylim.m
         plotsave.m
 
 TESTING FILES
-	BeynBenchmark.m
 	ContourDistance.m
