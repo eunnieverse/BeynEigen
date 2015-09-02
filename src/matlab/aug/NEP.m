@@ -71,7 +71,7 @@ classdef NEP
 
             obj.fundA = @subfundA;
             function A=subfundA(w)
-                A = []; 
+                A = zeros(n); 
                 for kk=1:p %polynomial order 
                     A = A + (kk)*A3d(:,:,kk+1)*w^(kk-1); 
                 end

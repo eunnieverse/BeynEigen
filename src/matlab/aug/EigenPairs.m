@@ -80,11 +80,11 @@ classdef EigenPairs
         function plot(obj)
             hold on; 
             switch obj.type
-                case 1; scatter(real(obj.E),imag(obj.E),40,'r');
-                case 2; scatter(real(obj.E),imag(obj.E),70,'b');
-                case 3; scatter(real(obj.E),imag(obj.E),50,'g*');
-                case 4; scatter(real(obj.E),imag(obj.E),50,'g.');
-                case 5; scatter(real(obj.E),imag(obj.E),40,'b*'); 
+                case 1; scatter(real(obj.E),imag(obj.E),40,'r'); hold on; 
+                case 2; scatter(real(obj.E),imag(obj.E),70,'b'); hold on; 
+                case 3; scatter(real(obj.E),imag(obj.E),50,'g*'); hold on; 
+                case 4; scatter(real(obj.E),imag(obj.E),50,'g.'); hold on; 
+                case 5; scatter(real(obj.E),imag(obj.E),40,'b*'); hold on; 
             end
         end
     end % end methods 
