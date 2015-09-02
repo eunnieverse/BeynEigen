@@ -16,17 +16,19 @@ classdef BeynData
         dgmax                       % cdouble[Nmax] whole contour
         emax                        % double,       Beyn cutoff (max error)
         %- previously converged Newton eigenvalues 
-        k                           % number of rmw eigenvalues 
-        E                           % rmw eigenvalues 
+        krmw                        % number of rmw eigenvalues 
+        Ermw                        % rmw eigenvalues 
         %- 
         NA                          % int,          N of BeynA0 and BeynA1
         BeynA0sum                   % BeynA0 summed at NA points on g
         BeynA1sum                   % BeynA1 summed at NA points on g
     end
     properties (Dependent)
-        M                       % cdouble(n,l)      Mmax(:,1:l) 
-        g                       % cdouble[N]  list of N contour points
-        dg                      % cdouble[N]  list of N dg/dw        
+        M                           % cdouble(n,l)      Mmax(:,1:l) 
+        g                           % cdouble[N]  list of N contour points
+        dg                          % cdouble[N]  list of N dg/dw        
+        rmw                         % function handle, used to remove 
+                                    % fully converged eigenvalues 
     end
     %-------------------------------------------------------------
     %-------------------------------------------------------------
@@ -43,11 +45,27 @@ classdef BeynData
             obj.dgmax= dgmax;
             obj.emax = emax; 
             obj.NA = 0;
-            obj.k = 0; 
-            obj.E_nc = []; 
+            obj.krmw = 0; 
+            obj.Ermw = []; 
         end
         %-------------------------------------------------------------
         %- Get functions 
+        %-------------------------------------------------------------
+        function rmw = get.rmw(obj)                        
+            if(obj.krmw==0)
+                error('BenyData k should be larger than 0 to call rmw');
+            end
+            
+            rmw = @subfun; 
+            function y = subfun(z)
+                %- return y = (z-E(1))*(z-E(2))*...*(z-E(k)) 
+                y=1; 
+                for kk=1:obj.krmw
+                    y=y*(z-obj.Ermw(kk)); 
+                end
+            end % function definition    
+        end
+        
         function M = get.M(obj)
             %- Get random matrix M(n,l), sampled from Mmax(n,n)
             M= obj.Mmax(:,1:obj.l);
@@ -60,40 +78,8 @@ classdef BeynData
             %- Get contour differential dg(N), sampled from dgmax(Nmax)
             dg=obj.dgmax(1:obj.N);
         end
-        %-------------------------------------------------------------
-        %- Set functions 
-        %-------------------------------------------------------------
-        %- Utils
-        function obj= halfBeynA(obj,funA,rmw)
-            %- Compute summation of BeynA0, BeynA1 for half of N 
-            obj.NA=obj.N/2; % sync NA = N/2 (half data pts) 
-            obj.BeynA0sum = zeros(obj.n,obj.l); 
-            obj.BeynA1sum = zeros(obj.n,obj.l); 
-            for jj=1:obj.NA; 
-                invA = funA(obj.g(jj))\obj.M;
-                obj.BeynA0sum = obj.BeynA0sum  + ...
-                    invA * rmw(jj) * obj.dg(jj);
-                obj.BeynA1sum = obj.BeynA1sum  + ...
-                    invA * rmw(jj) * obj.dg(jj) * obj.g(jj) ;
-            end 
-        end
         
-        function obj= fullBeynA(obj,funA,rmw)
-            %- update summation of BeynA0, BeynA1 for whole of N, 
-            %- using halfBeynA or data from previous run 
-            if(obj.NA ~= obj.N/2)
-                error('run halfBeynA before proceeding');
-            end
-            obj.NA = 2 * obj.NA ; % double obj.NA 
-            for jj=(obj.NA/2+1):obj.NA
-                invA = funA(obj.g(jj))\obj.M;
-                obj.BeynA0sum = obj.BeynA0sum + ...
-                    invA * rmw(jj) * obj.dg(jj); 
-                obj.BeynA1sum = obj.BeynA1sum + ...
-                    invA * rmw(jj) * obj.dg(jj) * obj.g(jj); 
-            end
-        end%%function         
-
+        %- Utils
         function plot(obj) 
             %- override plot function for contour
             [xLc,yLc]=plotxylim(obj.g); 
