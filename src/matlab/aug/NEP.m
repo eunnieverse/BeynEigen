@@ -13,8 +13,7 @@ classdef NEP
         n                           % int,          problem size A(n,n)
         filebase                    % string,       name of the file 
         funA                        % function definition 
-        fundA                       % function derivative definition
-        isHermitian                 % int,          1 if Hermitian, 0 if not
+        fundA                       % function derivative definition        
         S                           % Solution EigenPairs, contains k,E,V 
                                     % k: int,         # of eigenvalues 
                                     % E: double[k,1]  solution eigenvalues
@@ -32,8 +31,7 @@ classdef NEP
             otherwise; error('EigenPairs type shoud be between 1..2');
           end % switch
             obj.type=type; 
-            obj.S=EigenPairs(5); % ask Homer where to declare type of obj.S 
-            obj.isHermitian=0;   % default             
+            obj.S=EigenPairs(5); % ask Homer where to declare type of obj.S                 
         end
         function obj=NEP_load(obj,filebase)
             %- fill NEP data from an existing file 
@@ -58,28 +56,37 @@ classdef NEP
             obj.n=n;
             obj.filebase=sprintf(obj.format1,p,n);
             % Generate A0, A1, A2: random matrices
-            for jj=0:p
-                 eval(sprintf('A%d=rand(%d); coeffs{%d+1}=A%d;',jj,n,jj,jj));
-                 %%% ex) A2 = rand(n), coeffs{2}=A2; 
+            A3d = zeros(n,n,p+1); 
+            for kk=1:p+1
+                A3d(:,:,kk) = rand(n); 
             end
-            % define anonymous fcns. for funA=A(w), fundA=dA/dw
-            s0 = 'A0';                  % string for 'A0,A1,A2,...'
-            s1 = 'funA = @(w) A0';      % string for defining funA 
-            s2 = 'fundA = @(w)';        % string for defining fundA
-            for kk = 1:p %%polynomial order 
-                s1 = sprintf('%s + A%d*w^(%d)',s1,kk,kk); 
-                s2 = sprintf('%s + %d*A%d*w^(%d)',s2,kk,kk,kk-1); 
-                s0 = sprintf('%s,A%d',s0,kk);
+            
+            obj.funA = @subfunA;
+            function A=subfunA(w)
+                A = A3d(:,:,1); 
+                for kk=1:p %polynomial order 
+                    A = A + A3d(:,:,kk+1)*w^(kk); 
+                end
             end
-            eval(strcat(s1,';')); %% funA = @(w) A0 + A1*w^1 + A2*w^2; 
-            eval(strcat(s2,';')); %% fundA = @(w) A0 + 1*A1 + 2*A2*w^1; 
+
+            obj.fundA = @subfundA;
+            function A=subfundA(w)
+                A = []; 
+                for kk=1:p %polynomial order 
+                    A = A + (kk)*A3d(:,:,kk+1)*w^(kk-1); 
+                end
+            end
 
             % Run polyeig: [V,E,Econd] = polyeig(A0,A1,A2)
-            eval(strcat('[V,E,Econd] = polyeig(',s0,');')); 
-            obj.funA= funA;
-            obj.fundA=fundA;
-            k=length(E);
-            obj.S=update(obj.S,k,E,V); 
+            s0 = 'A3d(:,:,1)'; 
+            for kk = 1:p %%polynomial order 
+                s0 = sprintf('%s,A3d(:,:,%d)',s0,kk+1);
+            end
+            eval(strcat('[obj.S.V,obj.S.E] = polyeig(',s0,');'))
+            
+            obj.S.k=length(obj.S.E);
+            
+            % obj.S=update(obj.S,k,E,V); 
         end
         
         function obj=NEP_linear(obj,n)
