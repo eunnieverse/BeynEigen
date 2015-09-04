@@ -32,17 +32,17 @@ end
 %---------------------------------------------------------------------
 %- Construct BeynData 
 %---------------------------------------------------------------------
-Nmax =256;                % maximum size of contour 
+Nmax =64;                % maximum size of contour 
 
-g0 = 0.0; rho = 1; 
+g0 = 0.0; rho = 0.8; 
 [gmax,dgmax,s,dc,isinside]=NestedContour(g0,rho,Nmax);
 Mmax = eye(n); 
 %Mmax = rand(n);             % square random matrix M0 defined
-emax = 1e-2;                % Beyn cutoff error tolerance
+emax = 1;                % Beyn cutoff error tolerance
 
 %- Initial values for sampling 
-l  = n-1;                   % initial number of columns for M
-N  = 32;                     % quadrature N initialization 
+l  = 9;                   % initial number of columns for M
+N  = 4;                     % quadrature N initialization 
 ng = log2(Nmax) - log2(N); 
 ng0 = log2(N); 
 %---------------------------------------------------------------------
@@ -61,18 +61,31 @@ end
 %- Create wlist and dlist to move a single eigenvalue towards contour 
 %---------------------------------------------------------------------
 E = fA.S.E; 
+% [B,I]=sort(abs(E),'descend'); 
+% E=E(I); 
+fA=NEP_linear_update(fA,E); 
 
 w0 = E(1);
-r0 = abs(w0-g0);            % radius for w0
-u = (w0-g0)/r0;             % unit vector in w0 direction from g0
+%-
+usedpt=0; % move close to an actual point on the contour at N 
+if(usedpt)
+    [B,I]=sort(abs(w0-BDlist(1).g)); 
+    wmax = BDlist(1).g(I(1));     
+else
+    r0 = abs(w0-g0);            % radius for w0
+    u = (w0-g0)/r0;             % unit vector in w0 direction from g0
+    wmax = u*rho;    
+end
 
-
-wlist = linspace(w0,u*rho,nd); 
+wlist = w0 + (wmax - w0) * (1-logspace(-2,0,nd)); 
+wlist = flip(wlist); 
 dlist = dc(wlist); 
 
-cfig=plot(fA); hold on; 
+%---------------------------------------------------------------------
+%- Plot experiment scheme
+%---------------------------------------------------------------------
+cfig=plot(fA); hold on; plot(BDlist(1));hold on; 
 scatter(real(wlist),imag(wlist),40,'r');
-plot(BDlist(1));
 
 disp(wlist); 
 
@@ -84,15 +97,11 @@ disp(wlist);
 for gg=1:ng
     for ii=1:nd    
         E(1) = wlist(ii) ; 
-        fA=NEP_linear_update(fA,E); 
-                
-        [BDlist(ii),Slist(ii)]=Beyn(fA,BDlist(ii),S_f,Slist(ii));
-        
-        if(Slist(ii).k>0)                                % if Beyn has output 
-            maxerr = max(Slist(ii).err); 
-            absEerr = abs(Slist(ii).E(find(Slist(ii).err==maxerr))); 
+        fA=NEP_linear_update(fA,E);                 
+        [BDlist(ii),Slist(ii)]=Beyn(fA,BDlist(ii),S_f,Slist(ii));        
+        if(Slist(ii).k>0)                                % if Beyn has output         
              x(ii,gg) = dlist(ii)/s(N);
-             y(ii,gg) = maxerr/absEerr; 
+             y(ii,gg) = max(Slist(ii).err); 
         end
     end
 end
@@ -102,8 +111,8 @@ end
 %---------------------------------------------------------------------
 cfig = figure(); 
 for gg=1:ng
-    plot (x(:,gg),y(:,gg),'Color',clist(gg),'LineWidth',1.5,'Marker','o');
-    legendlist{gg}=sprintf('N=%4d',2^(gg+ng0)); 
+    loglog (x(:,gg),y(:,gg),'Color',clist(gg),'LineWidth',1.5,'Marker','o');
+    legendlist{gg}=sprintf('N=%4d',2^(gg+ng0-1)); 
     hold on; 
 end
 title('error'); 
