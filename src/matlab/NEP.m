@@ -101,6 +101,18 @@ classdef NEP
             obj.fundA= @(z) -eye(n); 
             obj.S=update(obj.S,length(E),E,eye(n)); 
         end
+        function obj=NEP_linear_update(obj,E)
+            %- Construct a linear eigenproblem from a given random matrix
+            if(obj.type~=2)
+                error('NEP type should be 1 (polynomial eigenproblem)');
+            end
+            if(length(E)~=obj.n)
+                error(sprintf('eigenvalue list should have length %d',n));
+            end            
+            obj.funA = @(z) diag(E) - z*eye(obj.n); 
+            obj.fundA= @(z) -eye(obj.n); 
+            obj.S=update(obj.S,length(E),E,eye(obj.n)); 
+        end
         
         function save(obj)
             % generate mfiles to store values
