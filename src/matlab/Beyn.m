@@ -7,7 +7,7 @@ function [BD, S_bc] = Beyn(fA, BD, S_f, S_bc)
 
 % BD is updated to current step values at the beginning of the run. 
 %---------------------------------------------------------------------    
-    usermw = 1;                 % whether to remove Newton converged E
+    usermw = 0;                 % whether to remove Newton converged E
     S_b  = EigenPairs(1);       % declare eigenpairs used to store N/2 run
     %---------------------------------------------------------------------
     %- previous run values Nj1, lj1, krmwj1 
