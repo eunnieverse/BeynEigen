@@ -19,6 +19,7 @@ function [gmax,dgmax,s,dc,isinside]=NestedContour(g0,rho,Nmax)
         y=zeros(size(w));
         y=rho-abs(w-g0);
     end
+
     %-----------------------------------------------------------------
     isinside = @subfun2; 
     function y=subfun2(w)

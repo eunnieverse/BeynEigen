@@ -107,7 +107,7 @@ classdef NEP
                 error('NEP type should be 1 (polynomial eigenproblem)');
             end
             if(length(E)~=obj.n)
-                error(sprintf('eigenvalue list should have length %d',n));
+                error(sprintf('eigenvalue list should have length %d',obj.n));
             end            
             obj.funA = @(z) diag(E) - z*eye(obj.n); 
             obj.fundA= @(z) -eye(obj.n); 
