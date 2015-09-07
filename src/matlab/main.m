@@ -6,7 +6,7 @@
 % included classes: NEP, NEPcounter, BeynData, EigenPairs
 %---------------------------------------------------------------------
 clear all; close all;
-showplot=1; saveeps=0; savejpg=1;       % choose conditions
+showplot=1; saveeps=1; savejpg=1;       % choose conditions
 savemov=1;  fignum=1;                   % save movie 
 %---------------------------------------------------------------------
 %- Initialize Eigenpairs 

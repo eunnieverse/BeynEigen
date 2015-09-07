@@ -11,8 +11,7 @@ clear all; close all; warning off;format short;
 clist='krgbcmkrgbcmkrgbcm';
 
 showplot=1; 
-savefigbase = 'contourdistance'; 
-saveeps=0; savejpg=0;       % choose conditions
+saveeps=1; savejpg=1;       % choose conditions
 savemov=0;                  % save movie 
 fignum=1;                   % initialize figure number
 
@@ -20,8 +19,9 @@ fignum=1;                   % initialize figure number
 % Construct an NEP (nonlinear eigenvalue problem) 
 % funA, fundA, filename, E, X
 %---------------------------------------------------------------------
-newdef =0 ;                 % run polydef if newdef
-n = 10;                    % define problem size 
+newdef =1;                 % run polydef if newdef
+n = 100;                    % define problem size 
+savefigbase = sprintf('contourdistance_n%d_',n); 
 fA = NEP(2);                % initialize NEP, 1: polynomial, 2: linear
 if(newdef==1);
     fA=NEP_linear(fA,n); save(fA);
@@ -32,8 +32,8 @@ end
 %---------------------------------------------------------------------
 %- Construct BeynData 
 %---------------------------------------------------------------------
-N  = 8;                     % quadrature N initialization 
-Nmax =N*32;                % maximum size of contour 
+N  = 16;                     % quadrature N initialization 
+Nmax =N*8;                % maximum size of contour 
 ng = log2(Nmax) - log2(N); 
 ng0 = log2(N); 
 
@@ -41,7 +41,7 @@ g0 = 0.0; rho =0.5;
 [gmax,dgmax,s,dc,isinside]=NestedContour(g0,rho,Nmax);
 %Mmax = eye(n); 
 Mmax = rand(n);             % square random matrix M0 defined
-emax = 1e-2;                % Beyn cutoff error tolerance
+emax = 1e-4;                % Beyn cutoff error tolerance
 
 %- Initial values for sampling 
 l  = n;                   % initial number of columns for M
@@ -70,16 +70,17 @@ usedpt=1; % move close to an actual point on the contour at N
 if(usedpt)    
     for ii=1:length(Ein)
         dmin(ii) = min(abs(Ein(ii)-g));
-    end
-    i0 = find(dmin==min(dmin));
-    w0 = Ein(i0);               % Eigval closest to a point
-        
+    end    
+    [B,I]=sort(dmin,'ascend'); 
+    w0 = Ein(I(5)); % Eigval closest to a point in g
+    i0 = find(E==w0); 
+    
     [B,I]=sort(abs(w0-g)); 
     wmax = BDlist(1).g(I(1));     
 else
     [B,I]=sort(dc(Ein),'ascend');
-    i0 = I(1); 
-    w0 = Ein(i0);               % Eigval closest to the analytical contour 
+    i0 = find(E==Ein(I(1))); 
+    w0 = E(i0);               % Eigval closest to the analytical contour 
 
     r0 = abs(w0-g0);            % radius for w0
     u = (w0-g0)/r0;             % unit vector in w0 direction from g0
@@ -91,21 +92,14 @@ wlist = flip(wlist);
 dlist = dc(wlist); 
 
 %---------------------------------------------------------------------
-%- Plot experiment scheme
-%---------------------------------------------------------------------
-cfig=plot(fA); hold on; plot(BDlist(1));hold on; 
-scatter(real(wlist),imag(wlist),40,'r');
-
-disp(wlist); 
-
-%---------------------------------------------------------------------
 %- Run Loop to change fA.S.E(i0), funA, fundA 
 %---------------------------------------------------------------------
 % each column of x stands for N = 16, 32, .. 
 % row stands for moving w points 
 for gg=1:ng                             % loop for all points on contour
-    for ii=1:nd                         % loop for wlist 
+    for ii=1:nd                         % loop for wlist        
         E(i0) = wlist(ii) ; 
+        %E(1)=wlist(ii); 
         fA=NEP_linear_update(fA,E);                 
         [BDlist(ii),Slist(ii)]=Beyn(fA,BDlist(ii),S_f,Slist(ii)); 
         Slist(ii)=sample(Slist(ii),find(isinside(Slist(ii).E))); % discard outside gamma        
@@ -114,13 +108,13 @@ for gg=1:ng                             % loop for all points on contour
              x(ii,gg) = dlist(ii)/s(N);             
              [B,I]=sort(Slist(ii).err,'descend');
              y1(ii,gg) = B(1); 
-             y2(ii,gg)= B(3); 
-             y3(ii,gg)= B(5); 
+%             y2(ii,gg)= B(3); 
+%             y3(ii,gg)= B(5); 
              
         end
     end
 end
-
+Eerr = Slist(nd).E(I(1)); % eigval with maximum error 
 %---------------------------------------------------------------------
 %- Plot error 
 %---------------------------------------------------------------------
@@ -139,18 +133,19 @@ ylabel('maximum absolute error');
 ylim([min(y1(:))*0.1 max(y1(:))*10]);
 xlim([min(x(:))*0.1 max(x(:))*10]);
 
-plotsave(cfig, strcat(savefigbase,num2str(fignum)), fignum, savejpg, saveeps);
+plotsave(cfig, savefigbase, fignum, savejpg, saveeps);
 fignum = fignum +1; 
-
 
 %---------------------------------------------------------------------
 %- Plot solutions 
 %---------------------------------------------------------------------
-cfig=plot(fA); plot(BDlist(ii)); plot(Slist(ii)); 
+cfig=plot(fA); hold on; plot(Slist(ii));  
+scatter(real(wlist),imag(wlist),100,'ro');
+scatter(real(Eerr),imag(Eerr),100,'g*'); 
+h=legend('solution','computed \omega', 'moved \omega', '\omega w. max error'); 
+set(h,'Location','northeast','Fontsize',10); 
+plot(BDlist(1));
 title(sprintf(['N=%5d'],BDlist(ii).N)); 
-plotsave(cfig, strcat(savefigbase,num2str(fignum)), fignum, savejpg, saveeps);
-%Mov(fignum)=getframe(cfig); 
-fignum = fignum +1; 
 
-%%% distance to analytical contour vs. distance to contour point 
-%%% d = dc(w); dpt =min(abs(w0-BD.g));  
+plotsave(cfig, savefigbase, fignum, savejpg, saveeps);
+fignum = fignum +1; 
