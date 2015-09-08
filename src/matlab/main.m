@@ -38,11 +38,11 @@ else
         case 2; fA=NEP_load(fA,sprintf(fA.format2,n)); 
     end
 end;
-savefigbase=sprintf('%s_randM_removeout',fA.filebase);
+savefigbase=sprintf('%s_randM',fA.filebase);
 %---------------------------------------------------------------------
 %- Construct BeynData 
 %---------------------------------------------------------------------
-Nmax = 2^9;                  % maximum size of contour 2^7=128. 2^9=512.
+Nmax = 2^7;                  % maximum size of contour 2^7=128. 2^9=512.
 g0 = 0.0; rho =0.5; 
 [gmax,dgmax,s,dc,isinside]=NestedContour(g0,rho,Nmax);
  Mmax = rand(n);            % square random matrix M0 defined
@@ -50,7 +50,7 @@ g0 = 0.0; rho =0.5;
 emax = 1e-2;                 % Beyn cutoff error tolerance
 
 %- Initial values for sampling 
-l  = n;                      % initial number of columns for M
+l  = n/2;                      % initial number of columns for M
 N  = 4;                     % quadrature N initialization 
 BD = BeynData(N,Mmax,l,gmax,dgmax,emax);
 c = NEPcounter();    % created counter 
@@ -58,7 +58,7 @@ c = NEPcounter();    % created counter
 %- Newton parameters 
 %---------------------------------------------------------------------
 breakN=@(ej,ej1) ej>=0.8*ej1 ;     % break if step size increases    
-NewtonType = 1; % simple Newton-Raphson       
+NewtonType =2; % simple Newton-Raphson       
 
 %---------------------------------------------------------------------
 %- Run Cycle
@@ -67,13 +67,17 @@ while(BD.N<=Nmax/2)
     %-----------------------------------------------------------------
     %- Beyn Step 
     %-----------------------------------------------------------------
+    if(S_nc.k>2 && S_bc.k>2)
+        BD.N = BD.N/2 ;
+    end    
     [BD, S_bc] = Beyn(fA, BD, S_nc, S_bc);     
     if(S_bc.k>0)                                % if Beyn has output 
-        c = add(c,l*1.5,max(S_bc.err));         % Record Operation Count         
+        c = add(c,l*1.5,max(S_bc.err));         % Record Operation Count                 
         S_bc=sample(S_bc,find(isinside(S_bc.E))); % discard outside gamma
         %-----------------------------------------------------------------
         %- Newton Step  
         %-----------------------------------------------------------------
+        S_nc = zero(S_nc); 
         S_nc = Newton(fA.funA, fA.fundA, NewtonType, S_bc, S_nc, breakN);         
         %S_nc = sample(S_nc,find(isinside(S_nc.E))); % discard outside gamma        
         
@@ -89,8 +93,11 @@ while(BD.N<=Nmax/2)
             end
          end
     end 
-    cfig=plot(fA); plot(BD); plot(S_bc); plot(S_nc); title(sprintf(['N=' ...
+    cfig=plot(fA); 
+    set(cfig,'Position',[50+fignum*5 50+fignum*5 560 420]); 
+    plot(BD); plot(S_bc); plot(S_nc); plot(S_f); title(sprintf(['N=' ...
     '%5d'],BD.N)); 
+    
     plotsave(cfig, savefigbase, fignum, savejpg, saveeps);
     Mov(fignum)=getframe(cfig); 
     fignum = fignum +1; 
@@ -101,6 +108,6 @@ end
 %---------------------------------------------------------------------
 log(c); 
 % if(showplot); figure(); plot(c,1); end; % 1 for time, 2 for numSolves, 3 for gflops
-if(savemov && fignum>4);
+if(savemov && fignum>3);
     movie2avi(Mov,strcat(savefigbase,'.avi'),'fps',1); 
 end

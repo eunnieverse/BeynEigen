@@ -7,25 +7,36 @@ function [BD, S_bc] = Beyn(fA, BD, S_f, S_bc)
 
 % BD is updated to current step values at the beginning of the run. 
 %---------------------------------------------------------------------    
-    usermw = 0;                 % whether to remove Newton converged E
+    usermw = 1;                 % whether to remove Newton converged E
     S_b  = EigenPairs(1);       % declare eigenpairs used to store N/2 run
     %---------------------------------------------------------------------
     %- previous run values Nj1, lj1, krmwj1 
     lj1 = BD.l; 
     Nj1 = BD.N;         
-    krmwj1 = BD.krmw;
     kj1 = S_bc.k;
+    krmwj1 = BD.krmw;
+
     %---------------------------------------------------------------------
     %- current run values Nj, lj, krmwj 
-    Nj  = 2 * Nj1;              % # contour pts, doubled 
+    
     krmwj  = S_f.k;             % # eigvals to remove using rmw, from S_k
-    dkrmw  = krmwj-krmwj1;
-    if(dkrmw == 0 )             % if krj didn't change
-        lj = lj1; 
-    else                        % if krj changed         
-        lj = lj1 - dkrmw;
+    dkrmw  = krmwj-krmwj1;      % # newly found eigvals to remove
+    if(dkrmw>5)                % if more than 5 eigvals are newly found
+        % frmw = newrmw(S_f.E((krmwj1+1):krmwj));        
+        Nj = Nj1;               % keep N
+        lj = lj1 - dkrmw;       % reduce l  % is it better to reduce l or keep l/reuse S_b? 
+    elseif(dkrmw>0) 
+        Nj  = 2 * Nj1;          % dble N 
+        lj = lj1 - dkrmw;       % reduce l 
+    else
+        Nj  = 2 * Nj1;          % dble N 
+        lj = lj1;               % keep l 
+    end        
+    
+    % increase l if previously found k is equal to l 
+    if(lj1 == kj1) 
+        lj = lj1 + 
     end
-    % disp(sprintf('   Beyn,   usermw=%d, removable krmw=%d',usermw,krmwj));    
     %---------------------------------------------------------------------
     %- update BD 
     BD.N = Nj;  
@@ -34,7 +45,6 @@ function [BD, S_bc] = Beyn(fA, BD, S_f, S_bc)
     BD.Ermw = S_f.E;
     %---------------------------------------------------------------------    
     %- Compute data for half run, store in S_b
-    %- Run with lj and figure out if lj is sufficient.      
     if( kj1 > 0 && lj == lj1 && BD.NA == Nj1)
         disp('   Beyn,   re-used BeynA for S_b'); 
         S_b = copy(S_b, S_bc); 
@@ -42,27 +52,6 @@ function [BD, S_bc] = Beyn(fA, BD, S_f, S_bc)
         % disp('   Beyn,   new BeynA for S_b by running halfBeynA'); 
         BD  = halfBeynA(BD, fA.funA, usermw);  % create new halfBeynA
         S_b = BeynSVD(BD, S_b);
-%     fixl = 1;                  % choose whether to fix l or run while loop      
-%     while( fixl == 0 )
-%         ljt = lj;               % test value for lj inside while loop                                
-%         if( kj1 > 0 && ljt == lj1 && BD.NA == Nj1)
-%             disp('   Beyn,   re-used BeynA for S_b'); 
-%             S_b = copy(S_b, S_bc); 
-%         else 
-%             disp('   Beyn,   new BeynA for S_b by running halfBeynA'); 
-%             BD  = halfBeynA(BD, fA.funA, usermw);  % create new halfBeynA
-%             S_b = BeynSVD(BD, S_b);
-%         end 
-%         if(ljt > S_b.k); 
-%             fixl = 1; 
-%             break; 
-%         end;
-%         if(ljt +10 > BD.n); 
-%             break; 
-%         end; 
-%         lj = ljt + 10; 
-%         BD.l = lj;           
-%     end    
     end        
     %-----------------------------------------------------------------
     %- Compute data for full run, store in S_bc
@@ -153,7 +142,19 @@ function BD= totalBeynA(BD,funA,usermw)
     BD.BeynA1sum = BeynA1sum;
 end
 
-function S_b = BeynSVD(BD, S_b)    
+function fun = newrmw(E)
+    %- return a function y = (z-E(1))*(z-E(2))*...*(z-E(k)) for every
+    %  element of E
+    fun = @subfun;     
+    function y = subfun(E)
+        E=E(:); y=1; 
+        for kk=1:length(E)
+            y=y*(z-E(kk)); 
+        end
+    end % function definition    
+end
+
+function S_b = BeynSVD(BD, S_b)
     %- load data from BD 
     l    = BD.l; 
     n    = BD.n;     

@@ -54,8 +54,7 @@ classdef BeynData
         function rmw = get.rmw(obj)                        
             if(obj.krmw==0)
                 error('BenyData k should be larger than 0 to call rmw');
-            end
-            
+            end            
             rmw = @subfun; 
             function y = subfun(z)
                 %- return y = (z-E(1))*(z-E(2))*...*(z-E(k)) 
@@ -65,7 +64,7 @@ classdef BeynData
                 end
             end % function definition    
         end
-        
+               
         function M = get.M(obj)
             %- Get random matrix M(n,l), sampled from Mmax(n,n)
             M= obj.Mmax(:,1:obj.l);
