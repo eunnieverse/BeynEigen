@@ -33,9 +33,10 @@ function [BD, S_bc] = Beyn(fA, BD, S_f, S_bc)
         lj = lj1;               % keep l 
     end        
     
-    % increase l if previously found k is equal to l 
+    % increase l by dl if previously found k is equal to l 
+    dl = 3; 
     if(lj1 == kj1) 
-        lj = lj1 + 
+        lj = lj1 + dl 
     end
     %---------------------------------------------------------------------
     %- update BD 

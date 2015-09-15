@@ -57,7 +57,7 @@ c = NEPcounter();    % created counter
 %---------------------------------------------------------------------
 %- Newton parameters 
 %---------------------------------------------------------------------
-breakN=@(ej,ej1) ej>=0.8*ej1 ;     % break if step size increases    
+breakN=@(ej,ej1) ej>=ej1 ;     % break if step size increases    
 NewtonType =2; % simple Newton-Raphson       
 
 %---------------------------------------------------------------------

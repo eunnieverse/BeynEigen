@@ -83,7 +83,7 @@ classdef EigenPairs
                 case 1; scatter(real(obj.E),imag(obj.E),40,'r'); hold on; 
                 case 2; scatter(real(obj.E),imag(obj.E),70,'b'); hold on; 
                 case 3; scatter(real(obj.E),imag(obj.E),50,'g*'); hold on; 
-                case 4; scatter(real(obj.E),imag(obj.E),50,'g.'); hold on; 
+                case 4; scatter(real(obj.E),imag(obj.E),50,'c.'); hold on; 
                 case 5; scatter(real(obj.E),imag(obj.E),40,'b*'); hold on; 
             end
         end
