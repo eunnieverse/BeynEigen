@@ -10,39 +10,41 @@ function [BD, S_bc] = Beyn(fA, BD, S_f, S_bc)
     usermw = 1;                 % whether to remove Newton converged E
     S_b  = EigenPairs(1);       % declare eigenpairs used to store N/2 run
     %---------------------------------------------------------------------
-    %- previous run values Nj1, lj1, krmwj1 
+    %- previous run values Nj1, lj1, pj1 
     lj1 = BD.l; 
     Nj1 = BD.N;         
     kj1 = S_bc.k;
-    krmwj1 = BD.krmw;
+    pj1 = BD.krmw;
 
     %---------------------------------------------------------------------
-    %- current run values Nj, lj, krmwj 
+    %- choose current run values Nj, lj, pj     
+    %- Choose whether to double N or not: ask. 
+    %- Choose whether to change l or not: 
     
-    krmwj  = S_f.k;             % # eigvals to remove using rmw, from S_k
-    dkrmw  = krmwj-krmwj1;      % # newly found eigvals to remove
+    pj  = S_f.k;             % # eigvals to remove using rmw, from S_k
+    dkrmw  = pj-pj1;      % # newly found eigvals to remove
     if(dkrmw>5)                % if more than 5 eigvals are newly found
-        % frmw = newrmw(S_f.E((krmwj1+1):krmwj));        
+        % frmw = newrmw(S_f.E((pj1+1):pj));        
         Nj = Nj1;               % keep N
-        lj = lj1 - dkrmw;       % reduce l  % is it better to reduce l or keep l/reuse S_b? 
+        lj = lj1 - dkrmw;       % reduce l  % is it better to reduce l or keep l/reuse S_b?
+    elseif(lj1==kj1) 
+        lj = lj1 + round(lj1*0.1); % increase by 10 percent
+        if(lj>n)
+            lj=n; 
+        end
     elseif(dkrmw>0) 
         Nj  = 2 * Nj1;          % dble N 
         lj = lj1 - dkrmw;       % reduce l 
     else
         Nj  = 2 * Nj1;          % dble N 
         lj = lj1;               % keep l 
-    end        
-    
-    % increase l by dl if previously found k is equal to l 
-    dl = 3; 
-    if(lj1 == kj1) 
-        lj = lj1 + dl 
     end
+    
     %---------------------------------------------------------------------
     %- update BD 
     BD.N = Nj;  
     BD.l = lj;         
-    BD.krmw = krmwj;
+    BD.krmw = pj;
     BD.Ermw = S_f.E;
     %---------------------------------------------------------------------    
     %- Compute data for half run, store in S_b

@@ -23,7 +23,7 @@ S_f  = EigenPairs(4);       % eigenpair list final
 newdef = 0;                 % run polydef if newdef==1
 
 n = 100;                    % define problem size 
-p = 2;                      % polynomial order 
+p = 10;                      % polynomial order 
 fA = NEP(1);                % initialize NEP, 1: polynomial, 2: linear 
 
 if(newdef==1);
@@ -45,8 +45,8 @@ savefigbase=sprintf('%s_randM',fA.filebase);
 Nmax = 2^7;                  % maximum size of contour 2^7=128. 2^9=512.
 g0 = 0.0; rho =0.5; 
 [gmax,dgmax,s,dc,isinside]=NestedContour(g0,rho,Nmax);
- Mmax = rand(n);            % square random matrix M0 defined
-% Mmax = eye(n); 
+% Mmax = rand(n);            % square random matrix M0 defined
+ Mmax = eye(n); 
 emax = 1e-2;                 % Beyn cutoff error tolerance
 
 %- Initial values for sampling 
