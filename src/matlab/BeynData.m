@@ -16,8 +16,8 @@ classdef BeynData
         dgmax                       % cdouble[Nmax] whole contour
         emax                        % double,       Beyn cutoff (max error)
         %- previously converged Newton eigenvalues 
-        krmw                        % number of rmw eigenvalues 
-        Ermw                        % rmw eigenvalues 
+        p                           % number of rmw eigenvalues 
+        Ep                          % rmw eigenvalues 
         %- 
         NA                          % int,          N of BeynA0 and BeynA1
         BeynA0sum                   % BeynA0 summed at NA points on g
@@ -45,8 +45,8 @@ classdef BeynData
             obj.dgmax= dgmax;
             obj.emax = emax; 
             obj.NA = 0;
-            obj.krmw = 0; 
-            obj.Ermw = []; 
+            obj.p  = 0; 
+            obj.Ep = []; 
         end
         %-------------------------------------------------------------
         %- Get functions 
@@ -59,8 +59,8 @@ classdef BeynData
             function y = subfun(z)
                 %- return y = (z-E(1))*(z-E(2))*...*(z-E(k)) 
                 y=1; 
-                for kk=1:obj.krmw
-                    y=y*(z-obj.Ermw(kk)); 
+                for kk=1:obj.p
+                    y=y*(z-obj.Ep(kk)); 
                 end
             end % function definition    
         end

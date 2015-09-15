@@ -14,27 +14,26 @@ function [BD, S_bc] = Beyn(fA, BD, S_f, S_bc)
     lj1 = BD.l; 
     Nj1 = BD.N;         
     kj1 = S_bc.k;
-    pj1 = BD.krmw;
-
+    pj1 = BD.p;
     %---------------------------------------------------------------------
     %- choose current run values Nj, lj, pj     
     %- Choose whether to double N or not: ask. 
     %- Choose whether to change l or not: 
     
     pj  = S_f.k;             % # eigvals to remove using rmw, from S_k
-    dkrmw  = pj-pj1;      % # newly found eigvals to remove
-    if(dkrmw>5)                % if more than 5 eigvals are newly found
+    dp  = pj-pj1;      % # newly found eigvals to remove
+    if(dp>5)                % if more than 5 eigvals are newly found
         % frmw = newrmw(S_f.E((pj1+1):pj));        
         Nj = Nj1;               % keep N
-        lj = lj1 - dkrmw;       % reduce l  % is it better to reduce l or keep l/reuse S_b?
+        lj = lj1 - dp;       % reduce l  % is it better to reduce l or keep l/reuse S_b?
     elseif(lj1==kj1) 
         lj = lj1 + round(lj1*0.1); % increase by 10 percent
         if(lj>n)
             lj=n; 
         end
-    elseif(dkrmw>0) 
+    elseif(dp>0) 
         Nj  = 2 * Nj1;          % dble N 
-        lj = lj1 - dkrmw;       % reduce l 
+        lj = lj1 - dp;       % reduce l 
     else
         Nj  = 2 * Nj1;          % dble N 
         lj = lj1;               % keep l 
@@ -44,8 +43,8 @@ function [BD, S_bc] = Beyn(fA, BD, S_f, S_bc)
     %- update BD 
     BD.N = Nj;  
     BD.l = lj;         
-    BD.krmw = pj;
-    BD.Ermw = S_f.E;
+    BD.p = pj;
+    BD.Ep = S_f.E;
     %---------------------------------------------------------------------    
     %- Compute data for half run, store in S_b
     if( kj1 > 0 && lj == lj1 && BD.NA == Nj1)
@@ -81,7 +80,7 @@ function BD= halfBeynA(BD,funA,usermw)
     
     rmwj = 1; 
     for jj=1:NA;                 
-        if(usermw && BD.krmw>0)
+        if(usermw && BD.p>0)
             rmwj = BD.rmw(BD.g(jj));
         end
         invAj = funA(g(jj))\M;
@@ -110,7 +109,7 @@ function BD= halfBeynA2(BD,funA,usermw)
     
     rmwj = 1; 
     for jj=NA/2+1:NA;                 
-        if(usermw && BD.krmw>0)
+        if(usermw && BD.p>0)
             rmwj = BD.rmw(BD.g(jj));
         end
         invAj = funA(g(jj))\M;
@@ -133,7 +132,7 @@ function BD= totalBeynA(BD,funA,usermw)
     
     rmwj = 1; 
     for jj=1:NA;                 
-        if(usermw && BD.krmw>0)
+        if(usermw && BD.p>0)
             rmwj = BD.rmw(BD.g(jj));
         end
         invAj = funA(g(jj))\M;
