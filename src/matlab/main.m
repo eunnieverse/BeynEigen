@@ -1,13 +1,13 @@
 %---------------------------------------------------------------------
 % BeynEigen project main file
 % Yoonkyung Eunnie Lee 
-% last modified on 2015.09.02
+% last modified on 2015.09.15
 %---------------------------------------------------------------------
 % included classes: NEP, NEPcounter, BeynData, EigenPairs
 %---------------------------------------------------------------------
 clear all; close all;
-showplot=1; saveeps=1; savejpg=1;       % choose conditions
-savemov=1;  fignum=1;                   % save movie 
+showplot=1; saveeps=0; savejpg=0;       % choose conditions
+savemov=0;  fignum=1;                   % save movie 
 %---------------------------------------------------------------------
 %- Initialize Eigenpairs 
 % k, E(k,1), err(k,1), V(n,k), nj(k,1)
@@ -46,7 +46,7 @@ Nmax = 2^7;                  % maximum size of contour 2^7=128. 2^9=512.
 g0 = 0.0; rho =0.5; 
 [gmax,dgmax,s,dc,isinside]=NestedContour(g0,rho,Nmax);
 % Mmax = rand(n);            % square random matrix M0 defined
- Mmax = eye(n); 
+Mmax = eye(n); 
 emax = 1e-2;                 % Beyn cutoff error tolerance
 
 %- Initial values for sampling 
@@ -57,7 +57,8 @@ c = NEPcounter();    % created counter
 %---------------------------------------------------------------------
 %- Newton parameters 
 %---------------------------------------------------------------------
-breakN=@(ej,ej1) ej>=ej1 ;     % break if step size increases    
+breakN=@(ej,ej1) (ej>=ej1); % break if step size increases
+                                            % also, if newton converged.
 NewtonType =2; % simple Newton-Raphson       
 
 %---------------------------------------------------------------------

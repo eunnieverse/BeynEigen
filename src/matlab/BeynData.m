@@ -52,7 +52,7 @@ classdef BeynData
         %- Get functions 
         %-------------------------------------------------------------
         function rmw = get.rmw(obj)                        
-            if(obj.krmw==0)
+            if(obj.p==0)
                 error('BenyData k should be larger than 0 to call rmw');
             end            
             rmw = @subfun; 
